@@ -3,18 +3,18 @@ import localFont from 'next/font/local';
 const atyp = localFont({
   src: [
     {
-      path: '../../public/fonts/AtypText-Medium.ttf',
-      weight: '300', // ⬅️ Light
+      path: './files/AtypText-Medium.ttf',
+      weight: '300',
       style: 'normal',
     },
     {
-      path: '../../public/fonts/AtypText-Regular.ttf',
-      weight: '400', // ⬅️ Regular (Normal)
+      path: './files/AtypText-Regular.ttf',
+      weight: '400',
       style: 'normal',
     },
     {
-      path: '../../public/fonts/AtypText-bold.ttf',
-      weight: '700', // ⬅️ Bold
+      path: './files/AtypText-Bold.ttf',
+      weight: '700',
       style: 'normal',
     },
   ],
