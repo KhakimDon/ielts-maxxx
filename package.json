@@ -6,8 +6,8 @@
     "start": "next start",
     "lint": "next lint",
     "dev": "next dev",
-    "build": "next build && next export",
-    "deploy": "npm run build && gh-pages -d out"
+    "build": "next build",
+    "export": "next export"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
