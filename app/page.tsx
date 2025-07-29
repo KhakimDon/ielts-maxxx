@@ -7,6 +7,7 @@ import SliderReviewsSection from './components/SliderReviewsSection';
 
 
 export default function Home() {
+
   return (
     <>
       <Hero />
