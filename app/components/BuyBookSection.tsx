@@ -93,6 +93,10 @@ export default function AboutSection() {
               setIsRegisterOpen(false);
               // тут можно открыть логин модалку
             }}
+            onOpenOTP={(phone) => {
+              // Handle OTP modal opening
+              console.log('Open OTP for phone:', phone);
+            }}
           />
         </div>
       </div>
