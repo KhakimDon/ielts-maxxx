@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -8,6 +10,13 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const router = useRouter();
+  const { login } = useAuth();
+
+  const [phoneOrEmail, setPhoneOrEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -17,6 +26,52 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   }, [onClose]);
 
   if (!isOpen) return null;
+
+  const handleLogin = async () => {
+    setError("");
+
+    try {
+      const response = await fetch(
+        "https://api.doniyortest.uz/api/v1/user/auth/Login/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            phone_number: phoneOrEmail,
+            password,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          "Ошибка авторизации: " +
+            (errorData.detail || JSON.stringify(errorData))
+        );
+      }
+
+      const data = await response.json();
+
+      // Временно подставим фейковое имя/фамилию, пока не делаем /me endpoint
+      login(data.access, data.refresh, {
+        first_name: "Имя",
+        last_name: "Пользователя",
+      });
+
+      console.log("✅ Пользователь вошёл");
+      onClose();
+      router.push("/profile");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Неизвестная ошибка");
+      }
+    }
+  };
 
   return (
     <div
@@ -33,26 +88,34 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         >
           &times;
         </button>
+
         <h2 className="text-3xl font-bold text-[#fca311] mb-6">Войти</h2>
+
         <input
-          placeholder="Электронная Почта Или Телефон"
+          value={phoneOrEmail}
+          onChange={(e) => setPhoneOrEmail(e.target.value)}
+          placeholder="Телефон или Email"
           className="w-full mb-3 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white"
         />
+
         <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           placeholder="Пароль"
           className="w-full mb-2 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white"
         />
+
+        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+
         <div className="text-sm mb-3">
           <p className="font-semibold cursor-pointer">Забыли пароль?</p>
-          <br />
-          <p>
-            Новый Пользователь?{" "}
-            <a href="#" className="underline">
-              Создать Учетную Запись
-            </a>
-          </p>
         </div>
-        <button className="w-full cursor-pointer bg-[#fca311] text-white py-2 rounded-md font-semibold hover:opacity-90">
+
+        <button
+          onClick={handleLogin}
+          className="w-full cursor-pointer bg-[#fca311] text-white py-2 rounded-md font-semibold hover:opacity-90"
+        >
           Продолжить
         </button>
       </div>
