@@ -1,24 +1,18 @@
 "use client";
 
-import { Worker } from "@react-pdf-viewer/core";
-import { Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
-import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
-
-import "@react-pdf-viewer/core/lib/styles/index.css";
-import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-
 export default function BookViewer() {
-  const defaultLayoutPluginInstance = defaultLayoutPlugin();
-
   return (
-    <div className="h-screen w-full bg-black">
-      <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
-        <Viewer
-          fileUrl="/book.pdf"
-          plugins={[defaultLayoutPluginInstance]}
-          defaultScale={SpecialZoomLevel.PageFit}
-        />
-      </Worker>
+    <div className="w-full h-screen flex flex-col items-center justify-center bg-black text-white">
+      <h1 className="text-3xl font-bold text-[#fca311] mb-6">
+        IELTS MAXXX 1.0
+      </h1>
+
+      <iframe
+        src="/book.pdf"
+        className="w-full h-full"
+        style={{ minHeight: "90vh" }}
+        title="IELTS Book"
+      />
     </div>
   );
 }
