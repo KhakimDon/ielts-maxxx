@@ -7,9 +7,14 @@ import { useAuth } from "@/hooks/useAuth";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSwitchToRegister?: () => void; // ✅ добавлено
 }
 
-export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export default function AuthModal({
+  isOpen,
+  onClose,
+  onSwitchToRegister,
+}: AuthModalProps) {
   const router = useRouter();
   const { login } = useAuth();
 
@@ -55,7 +60,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
       const data = await response.json();
 
-      // Временно подставим фейковое имя/фамилию, пока не делаем /me endpoint
+      // Временно подставим фейковое имя/фамилию
       login(data.access, data.refresh, {
         first_name: "Имя",
         last_name: "Пользователя",
@@ -118,6 +123,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         >
           Продолжить
         </button>
+
+        {onSwitchToRegister && (
+          <p
+            className="text-sm text-[#fca311] mt-4 cursor-pointer text-center"
+            onClick={onSwitchToRegister}
+          >
+            Нет аккаунта? Зарегистрироваться
+          </p>
+        )}
       </div>
     </div>
   );

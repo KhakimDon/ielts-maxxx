@@ -35,7 +35,6 @@ export default function Header() {
           />
         </Link>
 
-        {/* 🔒 Модалки */}
         <AuthModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
