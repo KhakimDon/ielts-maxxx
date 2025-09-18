@@ -23,16 +23,13 @@ export default function Footer() {
               <h4 className="text-[#fca311] mb-3">Компания</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link href="#">О книге</Link>
+                  <Link href="#about">О книге</Link>
                 </li>
                 <li>
-                  <Link href="#">Купить книгу</Link>
+                  <Link href="#buybook">Купить книгу</Link>
                 </li>
                 <li>
-                  <Link href="#">Цель этой книги</Link>
-                </li>
-                <li>
-                  <Link href="#">Партнёрство с нами</Link>
+                  <Link href="#about">Цель этой книги</Link>
                 </li>
               </ul>
             </div>

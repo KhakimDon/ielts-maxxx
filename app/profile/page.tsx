@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import ProtectedRoute from "@/app/components/ProtectedRoute";
 
 export default function ProfilePage() {
   return (
-    <main className="min-h-screen bg-black text-white font-atyp px-6 sm:px-12 py-10 flex flex-col items-center">
+    <ProtectedRoute>
+      <main className="min-h-screen bg-black text-white font-atyp px-6 sm:px-12 py-10 flex flex-col items-center">
       <h2 className="text-3xl mt-[50px] sm:text-4xl font-bold text-[#fca311] text-center mb-8">
         КНИГИ
       </h2>
@@ -24,14 +25,17 @@ export default function ProfilePage() {
               <h3 className="text-white !font-[var(--font-atyp)] font-bold! text-[30px]">
                 IELTS MAXXX <span className="text-[#fca311]">1.0</span>
               </h3>
-              <span className="text-[#fca311] text-[30px] font-bold">222</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#fca311" className="size-10">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" />
+              </svg>
+
             </div>
             <p className="text-sm mt-1 !font-[var(--font-atyp)] font-normal">
               Ты участвуешь в розыгрыше Гелика.
               <br />
-              Твой номер — 222.
+              При продаже 3000 книг, запуститься рандомайзер и выберем победителя.
             </p>
-            <div className="flex flex-wrap gap-5 mt-[30px]">
+            <div className="flex flex-wrap gap-5 mt-4 mb-2">
               <button className="bg-[#2196F3] cursor-pointer text-white !font-[var(--font-atyp)] font-bold! tracking-wider px-4 py-2 rounded-md text-sm flex items-center gap-1">
                 <a href="#">Зайти на канал</a>
                 <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24">
@@ -45,6 +49,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </main>
+      </main>
+    </ProtectedRoute>
   );
 }

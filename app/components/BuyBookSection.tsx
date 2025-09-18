@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { env } from "@/lib/env";
 
 export default function AboutSection() {
   const { isAuthenticated } = useAuth();
@@ -16,7 +17,7 @@ export default function AboutSection() {
     if (!agreed) return; 
 
     if (isAuthenticated) {
-      router.push("https://your-payment-link.com"); 
+      router.push(env.PAYMENT_LINK); 
     } else {
       setIsRegisterOpen(true);
     }

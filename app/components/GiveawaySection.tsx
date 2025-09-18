@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function GiveawaySection() {
   return (
-    <section className="relative bg-black text-white py-20 px-4 sm:px-10 overflow-hidden">
+    <section id="promo" className="relative bg-black text-white py-20 px-4 sm:px-10 overflow-hidden">
       <h2 className="text-[#fca311] !font-[var(--font-atyp)] text-3xl sm:text-4xl !font-extrabold uppercase leading-tight text-center mb-16">
         3000 продаж — <br className="sm:hidden" />
         1 легендарный

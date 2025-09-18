@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function AuthorSection() {
   return (
-    <section className="relative bg-black text-white p-5 px-4 sm:px-10 overflow-hidden">
+    <section id="author" className="relative bg-black text-white p-5 px-4 sm:px-10 overflow-hidden">
       <h2 className="text-[#fca311] !font-[var(--font-atyp)] !font-extrabold text-3xl sm:text-4xl uppercase text-center mb-12">
         Автор этой книги
       </h2>

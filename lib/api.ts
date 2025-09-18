@@ -1,34 +1,155 @@
-export async function loginUser(phone: string, password: string) {
+import { buildApiUrl, env } from "./env";
+
+// Интерфейсы для типизации
+interface LoginResponse {
+  access: string;
+  refresh: string;
+}
+
+interface UserData {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+}
+
+interface RefreshResponse {
+  access: string;
+}
+
+interface ConfirmPhoneResponse {
+  access: string;
+  refresh: string;
+}
+
+// Функция для получения данных пользователя
+export async function getUserData(accessToken: string): Promise<UserData> {
   try {
-    const res = await fetch("https://api.doniyortest.uz/user/login/", {
+    const res = await fetch(buildApiUrl(env.PROFILE_ENDPOINT), {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Accept": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Ошибка получения данных пользователя:", errorText);
+      throw new Error("Ошибка получения данных пользователя");
+    }
+
+    const responseData = await res.json();
+    console.log("📡 API Response - Данные пользователя:", responseData);
+    
+    // API возвращает массив, берем первый элемент
+    const userData = Array.isArray(responseData) ? responseData[0] : responseData;
+    
+    if (!userData) {
+      throw new Error("Данные пользователя не найдены");
+    }
+    
+    console.log("👤 Извлеченные данные пользователя:", userData);
+    
+    return userData;
+  } catch (err) {
+    console.error("Ошибка получения данных пользователя:", err);
+    throw err;
+  }
+}
+
+// Функция для обновления токена
+export async function refreshToken(refreshToken: string): Promise<RefreshResponse> {
+  try {
+    const res = await fetch(buildApiUrl(env.REFRESH_ENDPOINT), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify({
+        refresh: refreshToken,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Ошибка обновления токена");
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error("Ошибка обновления токена:", err);
+    throw err;
+  }
+}
+
+// Функция для входа пользователя
+export async function loginUser(phone: string, password: string): Promise<LoginResponse> {
+  try {
+    // Убираем +998 или 998 из начала номера телефона для бэкенда
+    const cleanPhone = phone.replace(/^(\+998|998)/, '');
+    
+    const res = await fetch(buildApiUrl(env.LOGIN_ENDPOINT), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json", 
       },
       body: JSON.stringify({
-        phone_number: phone,
+        phone_number: cleanPhone,
         password,
       }),
     });
 
-    const contentType = res.headers.get("content-type");
-
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error("Ошибка от сервера:", errorText);
-      throw new Error("Неверный номер телефона или пароль");
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Неверный номер телефона или пароль");
     }
 
-    if (contentType && contentType.includes("application/json")) {
-      return await res.json();
-    } else {
-      const raw = await res.text(); 
-      console.error("Ожидался JSON, но получен:", raw);
-      throw new Error("Сервер вернул неверный формат (не JSON)");
-    }
+    return await res.json();
   } catch (err) {
     console.error("Ошибка логина:", err);
+    throw err;
+  }
+}
+
+// Функция для подтверждения OTP кода
+export async function confirmPhone(phone: string, code: string): Promise<ConfirmPhoneResponse> {
+  try {
+    console.log("📱 Подтверждение OTP для номера:", phone, "код:", code);
+    
+    const res = await fetch(buildApiUrl(env.CONFIRM_PHONE_ENDPOINT), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+      body: JSON.stringify({
+        phone_number: phone,
+        code: code,
+      }),
+    });
+
+    const responseData = await res.json();
+    console.log("📡 API Response - Подтверждение OTP:", responseData);
+
+    if (!res.ok) {
+      throw new Error(responseData.message || "Неверный код подтверждения");
+    }
+
+    // Сохраняем токены в localStorage
+    if (responseData.access && responseData.refresh) {
+      localStorage.setItem("access_token", responseData.access);
+      localStorage.setItem("refresh_token", responseData.refresh);
+      console.log("✅ Токены сохранены в localStorage");
+    }
+
+    return responseData;
+  } catch (err) {
+    console.error("Ошибка подтверждения OTP:", err);
     throw err;
   }
 }

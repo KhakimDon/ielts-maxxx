@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function AboutSection() {
   return (
-    <section className="relative bg-black text-white py-20 px-4 sm:px-10 overflow-hidden">
+    <section id="about" className="relative bg-black text-white py-20 px-4 sm:px-10 overflow-hidden">
       <div
         className="absolute top-0 left-0 w-[500px] h-[1000px] z-0 pointer-events-none"
         style={{
