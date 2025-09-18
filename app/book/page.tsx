@@ -7,11 +7,22 @@ export default function BookPage() {
   const [numPages] = useState<number>(4); // Заглушка для количества страниц
 
   const goToPrevPage = () => {
-    setCurrentPage(prev => Math.max(prev - 1, 1));
+    const newPage = Math.max(currentPage - 1, 1);
+    setCurrentPage(newPage);
+    updatePdfPage(newPage);
   };
 
   const goToNextPage = () => {
-    setCurrentPage(prev => Math.min(prev + 1, numPages));
+    const newPage = Math.min(currentPage + 1, numPages);
+    setCurrentPage(newPage);
+    updatePdfPage(newPage);
+  };
+
+  const updatePdfPage = (page: number) => {
+    const iframe = document.querySelector('iframe');
+    if (iframe) {
+      iframe.src = `/book.pdf#page=${page}&toolbar=0&navpanes=0&scrollbar=1&statusbar=0&messages=0&scrollbar=1&view=FitH`;
+    }
   };
   return (
     <div>
@@ -19,24 +30,14 @@ export default function BookPage() {
         <h1 className="text-4xl font-bold text-[#fca311] mb-4">IELTS MAXXX 1.0</h1>
         <p className="text-gray-400">Приятного чтения!</p>
       </div>
-       {/* короче это контейнер для pdf файла */}
+       {/* PDF контейнер */}
        <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-         <div className="w-full max-w-[1170px] h-[826.49px] bg-gray-800 rounded-lg border border-gray-700 flex">
-           {/* Левая часть - показывается всегда */}
-           <div className="w-1/2 h-full bg-gray-700 border-r border-gray-600 flex items-center justify-center">
-             <div className="text-center">
-               <p className="text-gray-400">Страница {currentPage}</p>
-               <p className="text-sm text-gray-500 mt-2">50% ширины</p>
-             </div>
-           </div>
-           
-           {/* Правая часть - скрывается на экранах меньше 1200px */}
-           <div className="w-1/2 h-full bg-gray-700 flex items-center justify-center xl:block hidden">
-             <div className="text-center">
-               <p className="text-gray-400">Страница {currentPage + 1}</p>
-               <p className="text-sm text-gray-500 mt-2">50% ширины</p>
-             </div>
-           </div>
+         <div className="w-full max-w-[1170px] h-[826.49px] bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+           <iframe
+             src="/book.pdf#page=1&toolbar=0&navpanes=0&scrollbar=1&statusbar=0&messages=0&scrollbar=1&view=FitH"
+             className="w-full h-full border-0"
+             title="IELTS MAXXX 1.0 Book"
+           />
          </div>
        </div>
       <div className="h-[100px] bg-black"></div>
