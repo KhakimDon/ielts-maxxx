@@ -22,16 +22,13 @@ export default function BookPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [numPages, setNumPages] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPdfReady, setIsPdfReady] = useState(false);
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
   const [pagesLoaded, setPagesLoaded] = useState<Set<number>>(new Set());
-  const [cachedPages, setCachedPages] = useState<Map<number, any>>(new Map());
   const [isMobile, setIsMobile] = useState(false);
   const [isSmallMobile, setIsSmallMobile] = useState(false);
-  const [viewportWidth, setViewportWidth] = useState(585);
   const [containerHeight, setContainerHeight] = useState(826.49);
   const [mobileViewportWidth, setMobileViewportWidth] = useState(585);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
@@ -49,9 +46,9 @@ export default function BookPage() {
         setMobileViewportWidth(width); // 100% ширины экрана
         // Вычисляем высоту пропорционально ширине (стандартное соотношение A4: 1.414)
         setContainerHeight(width * 1.414);
-        setViewportWidth(width); // для PDF страниц
+        // setViewportWidth(width); // для PDF страниц
       } else {
-        setViewportWidth(585); // стандартная ширина
+        // setViewportWidth(585); // стандартная ширина
         setContainerHeight(826.49); // стандартная высота
         setMobileViewportWidth(585);
       }
@@ -112,7 +109,7 @@ export default function BookPage() {
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     console.log("PDF загружен успешно, страниц:", numPages);
     setNumPages(numPages);
-    setLoadingProgress(100);
+    // setLoadingProgress(100);
     setError(null);
     // Небольшая задержка для плавности
     setTimeout(() => {
@@ -123,14 +120,13 @@ export default function BookPage() {
   const onDocumentLoadProgress = useCallback(({ loaded, total }: { loaded: number; total: number }) => {
     const progress = Math.round((loaded / total) * 100);
     console.log(`PDF загрузка: ${loaded}/${total} (${progress}%)`);
-    setLoadingProgress(progress);
   }, []);
 
   const onDocumentLoadError = useCallback((error: Error) => {
     console.error("Ошибка загрузки PDF:", error);
     setError(`Ошибка загрузки PDF файла: ${error.message}`);
     setIsLoading(false);
-    setLoadingProgress(0);
+    // setLoadingProgress(0);
   }, []);
 
   const onPageLoadSuccess = useCallback((pageNumber: number) => {

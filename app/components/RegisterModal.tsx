@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
 import { buildApiUrl, env } from "@/lib/env";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -19,8 +17,6 @@ export default function RegisterModal({
   onSwitchToLogin,
   onOpenOTP,
 }: RegisterModalProps) {
-  const router = useRouter();
-  const { login } = useAuth();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");

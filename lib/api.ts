@@ -32,8 +32,8 @@ interface BookData {
 
 interface BookReadResponse {
   // Здесь будет структура ответа от API BookRead
-  // Пока что оставляем как any, пока не увидим реальный ответ
-  [key: string]: any;
+  // Пока что оставляем как unknown, пока не увидим реальный ответ
+  [key: string]: unknown;
 }
 
 // Функция для получения данных пользователя
