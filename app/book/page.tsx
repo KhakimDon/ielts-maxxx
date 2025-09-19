@@ -2,11 +2,12 @@
 
 import { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
+import BookAccessRoute from "@/app/components/BookAccessRoute";
 
 // Динамический импорт PDF компонентов для избежания SSR проблем
 const Document = dynamic(() => import("react-pdf").then((mod) => mod.Document), { 
   ssr: false,
-  loading: () => <div className="text-center text-gray-400">Загрузка PDF компонента...</div>
+  loading: () => <div className="text-center text-gray-400">Загрузка Книги компонента...</div>
 });
 const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), { 
   ssr: false,
@@ -238,13 +239,14 @@ export default function BookPage() {
   console.log("Render state:", { isPdfReady, isLoading, error, currentPage, numPages });
 
   return (
-    <div className={isFullscreen ? "fixed inset-0 bg-black z-50" : ""}>
-      {!isFullscreen && (
-        <div className="text-center bg-black pb-2 pt-15">
-          <h1 className="text-4xl font-bold text-[#fca311] mb-4">IELTS MAXXX 1.0</h1>
-          <p className="text-gray-400">Приятного чтения!</p>
-        </div>
-      )}
+    <BookAccessRoute>
+      <div className={isFullscreen ? "fixed inset-0 bg-black z-50" : ""}>
+        {!isFullscreen && (
+          <div className="text-center bg-black pb-2 pt-15">
+            <h1 className="text-4xl font-bold text-[#fca311] mb-4">IELTS MAXXX 1.0</h1>
+            <p className="text-gray-400">Приятного чтения!</p>
+          </div>
+        )}
        {/* PDF контейнер */}
        <div 
          className={`text-white flex items-center justify-center ${
@@ -517,6 +519,7 @@ export default function BookPage() {
          </button>
        </div>
        )}
-    </div>
+      </div>
+    </BookAccessRoute>
   );
 }

@@ -39,40 +39,35 @@ export default function Footer() {
           <div className="sm:w-1/1 !font-[var(--font-atyp)] !font-semibold tracking-wide">
             <h4 className="text-[#fca311] mb-3">Контакты</h4>
             <p className="leading-snug">
-              г. ТАШКЕНТ, ЯШНАБАДСКИЙ РАЙОН, УЛ. П. МАХМУД, 2- <br />
-              ПРОЕЗД, 1-ТУПИК, ДОМ 31, КВ. 1
+              Ташкент, Юнусабадский район, махаллинский сход граждан Адолат, <br />
+              4-й квартал, 20
             </p>
-            <p className="mt-2">(99) 999 99 99</p>
+            <a 
+              href="tel:+998970066066" 
+              className="mt-2 text-[#fca311] hover:text-white transition-colors cursor-pointer"
+            >
+              +998 97 006 60 66
+            </a>
           </div>
         </div>
 
         {/* Соцсети */}
         <div className="flex mt-3 sm:flex-col gap-4 sm:items-end items-center">
-          <Link href="#">
+          <Link href="https://t.me/mr_doniyormanager" target="_blank" rel="noopener noreferrer">
             <div className="bg-[#fca311] w-10 h-10 rounded-md flex items-center justify-center">
               <Image
-                src="/facebook.svg"
-                alt="Facebook"
-                width={10}
-                height={10}
+                src="/icons8-telegram-50.png"
+                alt="Telegram"
+                width={25}
+                height={25}
               />
             </div>
           </Link>
-          <Link href="#">
+          <Link href="https://www.instagram.com/mr.doniyorbotirov" target="_blank" rel="noopener noreferrer">
             <div className="bg-[#fca311] w-10 h-10 rounded-md flex items-center justify-center">
               <Image
                 src="/inst.svg"
                 alt="Instagram"
-                width={20}
-                height={20}
-              />
-            </div>
-          </Link>
-          <Link href="#">
-            <div className="bg-[#fca311] w-10 h-10 rounded-md flex items-center justify-center">
-              <Image
-                src="/twitter.svg"
-                alt="Twitter"
                 width={20}
                 height={20}
               />

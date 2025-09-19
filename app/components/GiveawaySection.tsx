@@ -64,7 +64,7 @@ export default function GiveawaySection() {
           alt="Гелик"
           width={500}
           height={300}
-          className="w-full max-w-[500px] h-auto"
+          className="w-full max-w-[500px] sm:max-w-[500px] max-w-[350px] h-auto"
         />
       </div>
     </section>

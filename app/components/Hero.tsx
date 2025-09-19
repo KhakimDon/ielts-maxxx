@@ -4,8 +4,11 @@ import { Button } from './ui/button';
 export default function Hero() {
   return (
     <section
-      className="relative w-full h-screen bg-black bg-top bg-no-repeat bg-cover pt-[120px]
+      className="relative w-full h-screen bg-black bg-center bg-no-repeat pt-[120px]
                  bg-[url('/hero-mobile.png')] sm:bg-[url('/hero-bg.png')]"
+      style={{
+        backgroundSize: '100% auto'
+      }}
     >
       <div className="absolute z-10 text-left top-[15vw] left-[9vw]"></div>
 

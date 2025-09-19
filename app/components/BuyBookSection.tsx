@@ -39,7 +39,7 @@ export default function AboutSection() {
             height={500}
             src="/book.png"
             alt="IELTS MAXXX Book"
-            className="max-w-[500px] pointer-events-none w-full h-auto object-cover lg:scale-x-[1.2] lg:scale-y-[1.2]"
+            className="max-w-[500px] sm:max-w-[500px] max-w-[300px] pointer-events-none w-full h-auto object-cover lg:scale-x-[1.2] lg:scale-y-[1.2]"
           />
         </div>
 

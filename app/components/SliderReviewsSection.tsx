@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -10,47 +9,66 @@ import "swiper/css/navigation";
 const reviews = [
   {
     id: 1,
-    name: "Jake Will.",
-    date: "04 June 2023",
-    title:
-      "5 Exercises Basketball Players Should Be Using To Develop Strength",
-    text: "This article was written by Jake Willhoite from Healthlisted.com. Strength in basketball isn’t all about a massive body mass or ripped muscles.",
+    name: "Анна Петрова",
+    date: "15 января 2025",
+    title: "Невероятно полезная книга!",
+    text: "Эта книга полностью изменила мой подход к подготовке к IELTS. За 2 месяца занятий по методике из книги я поднял свой балл с 6.0 до 8.0! Особенно помогли практические задания и советы по тайм-менеджменту.",
     avatar: "/avatar.svg",
   },
   {
     id: 2,
-    name: "Jake Will.",
-    date: "04 June 2023",
-    title:
-      "5 Exercises Basketball Players Should Be Using To Develop Strength",
-    text: "This article was written by Jake Willhoite from Healthlisted.com. Strength in basketball isn’t all about a massive body mass or ripped muscles.",
+    name: "Михаил Козлов",
+    date: "8 января 2025",
+    title: "Лучшая инвестиция в образование",
+    text: "Покупал книгу для подготовки к IELTS Academic. Результат превзошел все ожидания - получил 8.5 баллов! Структура материала очень логичная, все объяснения понятные. Рекомендую всем, кто серьезно настроен на высокий балл.",
     avatar: "/avatar.svg",
   },
   {
     id: 3,
-    name: "Jake Will.",
-    date: "04 June 2023",
-    title:
-      "5 Exercises Basketball Players Should Be Using To Develop Strength",
-    text: "This article was written by Jake Willhoite from Healthlisted.com. Strength in basketball isn’t all about a massive body mass or ripped muscles.",
+    name: "Елена Смирнова",
+    date: "2 января 2025",
+    title: "Спасибо за отличную подготовку!",
+    text: "Занималась по этой книге 3 месяца перед экзаменом. Особенно понравились разделы по Writing и Speaking - много полезных фраз и шаблонов. В итоге получила 7.5 баллов, хотя изначально рассчитывала максимум на 6.5.",
     avatar: "/avatar.svg",
   },
   {
     id: 4,
-    name: "Jake Will.",
-    date: "04 June 2023",
-    title:
-      "5 Exercises Basketball Players Should Be Using To Develop Strength",
-    text: "This article was written by Jake Willhoite from Healthlisted.com. Strength in basketball isn’t all about a massive body mass or ripped muscles.",
+    name: "Дмитрий Волков",
+    date: "25 декабря 2024",
+    title: "Методика работает на 100%",
+    text: "Изучал английский самостоятельно, но для IELTS нужна была структурированная подготовка. Эта книга дала мне все необходимое - от базовых правил до продвинутых техник. Результат: 8.0 баллов с первого раза!",
     avatar: "/avatar.svg",
   },
   {
     id: 5,
-    name: "Jake Will.",
-    date: "04 June 2023",
-    title:
-      "5 Exercises Basketball Players Should Be Using To Develop Strength",
-    text: "This article was written by Jake Willhoite from Healthlisted.com. Strength in basketball isn’t all about a massive body mass or ripped muscles.",
+    name: "Ольга Новикова",
+    date: "18 декабря 2024",
+    title: "Потрясающий результат!",
+    text: "Готовилась к IELTS General Training. Книга помогла систематизировать знания и выявить слабые места. Практические упражнения очень эффективные. Получила 7.0 баллов, что было моей целью. Очень довольна покупкой!",
+    avatar: "/avatar.svg",
+  },
+  {
+    id: 6,
+    name: "Александр Морозов",
+    date: "12 декабря 2024",
+    title: "Настоятельно рекомендую!",
+    text: "Работаю в IT и нужен был IELTS для иммиграции. Времени на подготовку было мало, но благодаря четкой структуре книги и практическим советам успешно сдал экзамен с результатом 8.5. Книга стоит своих денег!",
+    avatar: "/avatar.svg",
+  },
+  {
+    id: 7,
+    name: "Татьяна Лебедева",
+    date: "5 декабря 2024",
+    title: "Отличное качество материала",
+    text: "Преподаю английский, но для сдачи IELTS нужна была специальная подготовка. Книга дала мне все необходимые знания и техники. Особенно ценны разделы по Reading и Listening. Получила 9.0 баллов!",
+    avatar: "/avatar.svg",
+  },
+  {
+    id: 8,
+    name: "Игорь Соколов",
+    date: "28 ноября 2024",
+    title: "Лучшая книга для IELTS!",
+    text: "Готовился к экзамену 4 месяца по этой книге. Материал изложен очень доступно, много примеров и практических заданий. Результат: 7.5 баллов, что позволило поступить в желаемый университет. Спасибо автору!",
     avatar: "/avatar.svg",
   },
 ];
@@ -80,13 +98,22 @@ export default function ReviewsSlider() {
           <SwiperSlide key={review.id}>
             <div className="border border-[#fca311] rounded-md p-6 bg-black">
               <div className="flex items-center gap-3 mb-2">
-                <Image
-                  src={review.avatar}
-                  alt="avatar"
-                  width={40}
-                  height={40}
-                  className="rounded-full w-10 h-10 object-cover"
-                />
+                <div className="w-10 h-10 bg-[#fca311] rounded-full flex items-center justify-center">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth="1.5" 
+                    stroke="currentColor" 
+                    className="w-6 h-6 text-black"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" 
+                    />
+                  </svg>
+                </div>
                 <p className="text-[#fca311] !font-[var(--font-atyp)] !font-semibold text-l">
                   {review.name}
                 </p>

@@ -23,6 +23,19 @@ interface ConfirmPhoneResponse {
   refresh: string;
 }
 
+interface BookData {
+  id: number;
+  title: string;
+  slug: string;
+  is_purchased: boolean;
+}
+
+interface BookReadResponse {
+  // Здесь будет структура ответа от API BookRead
+  // Пока что оставляем как any, пока не увидим реальный ответ
+  [key: string]: any;
+}
+
 // Функция для получения данных пользователя
 export async function getUserData(accessToken: string): Promise<UserData> {
   try {
@@ -150,6 +163,62 @@ export async function confirmPhone(phone: string, code: string): Promise<Confirm
     return responseData;
   } catch (err) {
     console.error("Ошибка подтверждения OTP:", err);
+    throw err;
+  }
+}
+
+// Функция для получения списка книг
+export async function getBookList(accessToken: string): Promise<BookData[]> {
+  try {
+    const res = await fetch(buildApiUrl('/main/book/BookList/'), {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Accept": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Ошибка получения списка книг:", errorText);
+      throw new Error("Ошибка получения списка книг");
+    }
+
+    const responseData = await res.json();
+    console.log("📚 API Response - Список книг:", responseData);
+    
+    return responseData;
+  } catch (err) {
+    console.error("Ошибка получения списка книг:", err);
+    throw err;
+  }
+}
+
+// Функция для получения книги по slug для чтения
+export async function getBookRead(accessToken: string, slug: string): Promise<BookReadResponse> {
+  try {
+    const res = await fetch(buildApiUrl(`/main/book/${slug}/BookRead/`), {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Accept": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Ошибка получения книги для чтения:", errorText);
+      throw new Error("Ошибка получения книги для чтения");
+    }
+
+    const responseData = await res.json();
+    console.log("📖 API Response - Книга для чтения:", responseData);
+    
+    return responseData;
+  } catch (err) {
+    console.error("Ошибка получения книги для чтения:", err);
     throw err;
   }
 }

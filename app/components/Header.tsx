@@ -148,18 +148,37 @@ export default function Header() {
           )}
         </div>
 
-        {/* 📱 Mobile menu toggle */}
-        <button
-          className="md:hidden ml-4"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? (
-            <XIcon className="w-6 h-6 text-[#fca311]" />
+        {/* 📱 Mobile Auth Button & Menu toggle */}
+        <div className="md:hidden flex items-center gap-3">
+          {/* Кнопка Войти/Профиль для мобильных */}
+          {isAuthenticated && user ? (
+            <Button
+              onClick={() => router.push("/profile")}
+              className="bg-[#fca311] text-white text-sm px-4 py-2"
+            >
+              Профиль
+            </Button>
           ) : (
-            <MenuIcon className="w-6 h-6 text-[#fca311]" />
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#fca311] text-white text-sm px-4 py-2"
+            >
+              Войти
+            </Button>
           )}
-        </button>
+          
+          {/* Бургер меню */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? (
+              <XIcon className="w-6 h-6 text-[#fca311]" />
+            ) : (
+              <MenuIcon className="w-6 h-6 text-[#fca311]" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* 📱 Mobile Menu */}
