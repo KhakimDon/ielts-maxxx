@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isBuying, setIsBuying] = useState(false);
+  const [hasAttemptedPurchase, setHasAttemptedPurchase] = useState(false);
 
   useEffect(() => {
     const fetchBookData = async () => {
@@ -69,6 +70,9 @@ export default function ProfilePage() {
       // Открываем URL в новой вкладке
       window.open(orderData.url, '_blank');
       
+      // Устанавливаем флаг, что пользователь попытался купить
+      setHasAttemptedPurchase(true);
+      
     } catch (err) {
       console.error("Ошибка при покупке книги:", err);
       setError("Ошибка при создании заказа. Попробуйте еще раз.");
@@ -80,6 +84,11 @@ export default function ProfilePage() {
   const handleJoinChannel = () => {
     // Пока что ничего не происходит
     console.log("Зайти на канал - функционал в разработке");
+  };
+
+  const handleRefresh = () => {
+    // Обновляем страницу
+    window.location.reload();
   };
 
   return (
@@ -146,17 +155,42 @@ export default function ProfilePage() {
                     </button>
                   </>
                 ) : (
-                  <button 
-                    onClick={handleBuyBook}
-                    disabled={isBuying}
-                    className={`cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-4 py-2 rounded-md text-sm ${
-                      isBuying 
-                        ? 'bg-gray-500 cursor-not-allowed opacity-50' 
-                        : 'bg-[#fca311] hover:bg-[#E8850A]'
-                    }`}
-                  >
-                    {isBuying ? 'Создание заказа...' : 'Купить книгу'}
-                  </button>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={handleBuyBook}
+                      disabled={isBuying}
+                      className={`cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-4 py-2 rounded-md text-sm ${
+                        isBuying 
+                          ? 'bg-gray-500 cursor-not-allowed opacity-50' 
+                          : 'bg-[#fca311] hover:bg-[#E8850A]'
+                      }`}
+                    >
+                      {isBuying ? 'Создание заказа...' : 'Купить книгу'}
+                    </button>
+                    
+                    {hasAttemptedPurchase && (
+                      <button 
+                        onClick={handleRefresh}
+                        className="bg-[#2196F3] cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-4 py-2 rounded-md text-sm hover:bg-[#1976D2] flex items-center gap-2"
+                        title="Обновить страницу"
+                      >
+                        <svg 
+                          className="w-4 h-4" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                          />
+                        </svg>
+                        Обновить
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
