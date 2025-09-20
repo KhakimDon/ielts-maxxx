@@ -1,25 +1,28 @@
 "use client";
 import Image from "next/image";
 import RegisterModal from "./RegisterModal";
+import AuthModal from "./AuthModal";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { env } from "@/lib/env";
 
 export default function AboutSection() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [agreed, setAgreed] = useState(false);
 
-  const handleBuy = () => {
+  const handleAction = () => {
     if (!agreed) return; 
 
     if (isAuthenticated) {
-      router.push(env.PAYMENT_LINK); 
+      // Если пользователь зарегистрирован - переходим к чтению книги
+      router.push("/book"); 
     } else {
-      setIsRegisterOpen(true);
+      // Если не зарегистрирован - показываем модалку входа
+      setIsAuthOpen(true);
     }
   };
 
@@ -45,17 +48,20 @@ export default function AboutSection() {
 
         <div>
           <h2 className="text-3xl sm:text-4xl text-[#fca311] font-bold mb-3">
-            КУПИТЬ КНИГУ
+            {isAuthenticated ? "ЧИТАТЬ КНИГУ" : "КУПИТЬ КНИГУ"}
           </h2>
           <p className="text-lg sm:text-xl font-semibold mb-2">
-            КУПИТЬ КНИГУ В ОДИН КЛИК
+            {isAuthenticated ? "ЧИТАТЬ КНИГУ В ОДИН КЛИК" : "КУПИТЬ КНИГУ В ОДИН КЛИК"}
           </p>
           <p className="mb-6">
-            ПОСЛЕ ОПЛАТЫ КНИГА БУДЕТ ДОСТУПНА В ЛИЧНОМ КАБИНЕТЕ
+            {isAuthenticated 
+              ? "КНИГА ДОСТУПНА В ВАШЕМ ЛИЧНОМ КАБИНЕТЕ" 
+              : "ПОСЛЕ ОПЛАТЫ КНИГА БУДЕТ ДОСТУПНА В ЛИЧНОМ КАБИНЕТЕ"
+            }
           </p>
 
           <button
-            onClick={handleBuy}
+            onClick={handleAction}
             disabled={!agreed}
             className={`font-semibold text-lg px-8 py-3 rounded-md transition-opacity ${
               agreed
@@ -63,7 +69,7 @@ export default function AboutSection() {
                 : "bg-[#fca311] text-white opacity-50 cursor-not-allowed"
             }`}
           >
-            Купить
+            {isAuthenticated ? "Читать" : "Купить"}
           </button>
 
           <div className="mt-4 text-sm flex items-center gap-2">
@@ -96,6 +102,15 @@ export default function AboutSection() {
             onOpenOTP={(phone) => {
               // Handle OTP modal opening
               console.log('Open OTP for phone:', phone);
+            }}
+          />
+
+          <AuthModal
+            isOpen={isAuthOpen}
+            onClose={() => setIsAuthOpen(false)}
+            onSwitchToRegister={() => {
+              setIsAuthOpen(false);
+              setIsRegisterOpen(true);
             }}
           />
         </div>
