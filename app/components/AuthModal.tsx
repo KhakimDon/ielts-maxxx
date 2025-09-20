@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { loginUser } from "@/lib/api";
 import { Eye, EyeOff } from "lucide-react";
+import { IMaskInput } from "react-imask";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ export default function AuthModal({
   const router = useRouter();
   const { login } = useAuth();
 
-  const [phoneOrEmail, setPhoneOrEmail] = useState("");
+  const [phoneOrEmail, setPhoneOrEmail] = useState("+998 ");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +31,7 @@ export default function AuthModal({
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         // Очищаем поля при закрытии
-        setPhoneOrEmail("");
+        setPhoneOrEmail("+998 ");
         setPassword("");
         setError("");
         setShowPassword(false);
@@ -45,9 +46,18 @@ export default function AuthModal({
 
   // Функция для обработки ввода номера телефона
   const handlePhoneChange = (value: string) => {
-    // Убираем все символы кроме цифр
-    const numbersOnly = value.replace(/\D/g, '');
-    setPhoneOrEmail(numbersOnly);
+    // Если пользователь пытается удалить +998, не позволяем
+    if (value.length < 5) {
+      setPhoneOrEmail("+998 ");
+      return;
+    }
+    setPhoneOrEmail(value);
+  };
+
+  // Функция для получения только цифр номера (без +998)
+  const getPhoneNumber = (phone: string) => {
+    const numbers = phone.replace(/\D/g, '');
+    return numbers.startsWith('998') ? numbers.substring(3) : numbers;
   };
 
   const handleLogin = async () => {
@@ -56,8 +66,8 @@ export default function AuthModal({
 
     try {
       // Валидация полей
-      if (!phoneOrEmail.trim()) {
-        setError("Введите номер телефона или email");
+      if (!phoneOrEmail.trim() || phoneOrEmail === "+998 ") {
+        setError("Введите номер телефона");
         return;
       }
       if (!password.trim()) {
@@ -65,14 +75,21 @@ export default function AuthModal({
         return;
       }
 
+      // Получаем только цифры номера для отправки
+      const phoneNumber = getPhoneNumber(phoneOrEmail);
+      if (phoneNumber.length < 9) {
+        setError("Введите корректный номер телефона");
+        return;
+      }
+
       // Выполняем вход через API
-      const loginData = await loginUser(phoneOrEmail, password);
+      const loginData = await loginUser(phoneNumber, password);
       
       // Сохраняем токены и получаем данные пользователя
       await login(loginData.access, loginData.refresh);
 
       // Очищаем поля формы
-      setPhoneOrEmail("");
+      setPhoneOrEmail("+998 ");
       setPassword("");
       setError("");
       setShowPassword(false);
@@ -96,7 +113,7 @@ export default function AuthModal({
       className="fixed inset-0 bg-[#00000060] backdrop-blur-sm z-50 flex items-center justify-center"
       onClick={() => {
         // Очищаем поля при закрытии
-        setPhoneOrEmail("");
+        setPhoneOrEmail("+998 ");
         setPassword("");
         setError("");
         setShowPassword(false);
@@ -110,7 +127,7 @@ export default function AuthModal({
         <button
           onClick={() => {
             // Очищаем поля при закрытии
-            setPhoneOrEmail("");
+            setPhoneOrEmail("+998 ");
             setPassword("");
             setError("");
             onClose();
@@ -122,12 +139,13 @@ export default function AuthModal({
 
         <h2 className="text-3xl font-bold text-[#fca311] mb-6">Войти</h2>
 
-        <input
-          type="tel"
+        <IMaskInput
+          mask="+998 00 000-00-00"
           value={phoneOrEmail}
-          onChange={(e) => handlePhoneChange(e.target.value)}
-          placeholder="Номер телефона"
-          className="w-full mb-3 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white"
+          onAccept={(value: string) => handlePhoneChange(value)}
+          placeholder="+998 99 999-99-99"
+          className="w-full mb-3 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white text-white"
+          lazy={false}
         />
 
         <div className="relative mb-2">

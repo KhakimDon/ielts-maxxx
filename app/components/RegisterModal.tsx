@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { buildApiUrl, env } from "@/lib/env";
 import { Eye, EyeOff } from "lucide-react";
+import { IMaskInput } from "react-imask";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ export default function RegisterModal({
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState("+998 ");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -33,7 +34,7 @@ export default function RegisterModal({
         // Очищаем поля при закрытии
         setFirstName("");
         setLastName("");
-        setPhone("");
+        setPhone("+998 ");
         setEmail("");
         setPassword("");
         setError("");
@@ -50,10 +51,20 @@ export default function RegisterModal({
 
   // Функция для обработки ввода номера телефона
   const handlePhoneChange = (value: string) => {
-    // Убираем все символы кроме цифр
-    const numbersOnly = value.replace(/\D/g, '');
-    setPhone(numbersOnly);
+    // Если пользователь пытается удалить +998, не позволяем
+    if (value.length < 5) {
+      setPhone("+998 ");
+      return;
+    }
+    setPhone(value);
   };
+
+  // Функция для получения только цифр номера (без +998)
+  const getPhoneNumber = (phone: string) => {
+    const numbers = phone.replace(/\D/g, '');
+    return numbers.startsWith('998') ? numbers.substring(3) : numbers;
+  };
+
 
   const handleRegister = async () => {
     setError("");
@@ -67,8 +78,15 @@ export default function RegisterModal({
       setError("Введите фамилию");
       return;
     }
-    if (!phone.trim()) {
+    if (!phone.trim() || phone === "+998 ") {
       setError("Введите номер телефона");
+      return;
+    }
+
+    // Получаем только цифры номера для валидации
+    const phoneNumber = getPhoneNumber(phone);
+    if (phoneNumber.length < 9) {
+      setError("Введите корректный номер телефона");
       return;
     }
     if (!email.trim()) {
@@ -83,8 +101,8 @@ export default function RegisterModal({
     setIsLoading(true);
 
     try {
-      // Убираем +998 или 998 из начала номера телефона для бэкенда
-      const cleanPhone = phone.replace(/^(\+998|998)/, '');
+      // Получаем только цифры номера для отправки
+      const cleanPhone = getPhoneNumber(phone);
       
       // Получаем токен из localStorage для авторизации
       const accessToken = localStorage.getItem("access_token");
@@ -116,7 +134,7 @@ export default function RegisterModal({
         // Очищаем поля формы
         setFirstName("");
         setLastName("");
-        setPhone("");
+        setPhone("+998 ");
         setEmail("");
         setPassword("");
         setError("");
@@ -151,7 +169,7 @@ export default function RegisterModal({
         // Очищаем поля при закрытии
         setFirstName("");
         setLastName("");
-        setPhone("");
+        setPhone("+998 ");
         setEmail("");
         setPassword("");
         setError("");
@@ -169,7 +187,7 @@ export default function RegisterModal({
             // Очищаем поля при закрытии
             setFirstName("");
             setLastName("");
-            setPhone("");
+            setPhone("+998 ");
             setEmail("");
             setPassword("");
             setError("");
@@ -197,12 +215,13 @@ export default function RegisterModal({
           className="w-full mb-3 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white"
         />
 
-        <input
-          type="tel"
+        <IMaskInput
+          mask="+998 00 000-00-00"
           value={phone}
-          onChange={(e) => handlePhoneChange(e.target.value)}
-          placeholder="Номер телефона"
-          className="w-full mb-3 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white"
+          onAccept={(value: string) => handlePhoneChange(value)}
+          placeholder="+998 99 999-99-99"
+          className="w-full mb-3 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white text-white"
+          lazy={false}
         />
 
         <input
