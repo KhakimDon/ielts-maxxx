@@ -369,3 +369,42 @@ export async function getBookPdfFile(accessToken: string, slug: string): Promise
     throw err;
   }
 }
+
+// Интерфейс для ответа создания заказа
+interface CreateOrderResponse {
+  url: string;
+}
+
+// Функция для создания заказа
+export async function createOrder(accessToken: string): Promise<CreateOrderResponse> {
+  try {
+    console.log("🛒 Создаем заказ...");
+    
+    const res = await fetch(buildApiUrl("/main/order/create/"), {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+      body: JSON.stringify({
+        book: 5,
+        currency: "uzs"
+      }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Ошибка создания заказа:", errorText);
+      throw new Error("Ошибка создания заказа");
+    }
+
+    const responseData = await res.json();
+    console.log("🛒 Заказ создан успешно:", responseData);
+    
+    return responseData;
+  } catch (err) {
+    console.error("Ошибка создания заказа:", err);
+    throw err;
+  }
+}

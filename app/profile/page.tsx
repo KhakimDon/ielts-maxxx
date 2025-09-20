@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/app/components/ProtectedRoute";
-import { getBookList } from "@/lib/api";
+import { getBookList, createOrder } from "@/lib/api";
 
 interface BookData {
   id: number;
@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isBuying, setIsBuying] = useState(false);
 
   useEffect(() => {
     const fetchBookData = async () => {
@@ -49,9 +50,31 @@ export default function ProfilePage() {
     router.push("/book");
   };
 
-  const handleBuyBook = () => {
-    // Пока что ничего не происходит
-    console.log("Купить книгу - функционал в разработке");
+  const handleBuyBook = async () => {
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) {
+      setError("Токен доступа не найден");
+      return;
+    }
+
+    try {
+      setIsBuying(true);
+      setError(null);
+      
+      console.log("🛒 Начинаем процесс покупки...");
+      const orderData = await createOrder(accessToken);
+      
+      console.log("🛒 Получен URL для оплаты:", orderData.url);
+      
+      // Открываем URL в новой вкладке
+      window.open(orderData.url, '_blank');
+      
+    } catch (err) {
+      console.error("Ошибка при покупке книги:", err);
+      setError("Ошибка при создании заказа. Попробуйте еще раз.");
+    } finally {
+      setIsBuying(false);
+    }
   };
 
   const handleJoinChannel = () => {
@@ -125,9 +148,14 @@ export default function ProfilePage() {
                 ) : (
                   <button 
                     onClick={handleBuyBook}
-                    className="bg-[#fca311] cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-4 py-2 rounded-md text-sm"
+                    disabled={isBuying}
+                    className={`cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-4 py-2 rounded-md text-sm ${
+                      isBuying 
+                        ? 'bg-gray-500 cursor-not-allowed opacity-50' 
+                        : 'bg-[#fca311] hover:bg-[#E8850A]'
+                    }`}
                   >
-                    Купить книгу
+                    {isBuying ? 'Создание заказа...' : 'Купить книгу'}
                   </button>
                 )}
               </div>
