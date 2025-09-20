@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
-import BookAccessRoute from "@/app/components/BookAccessRoute";
+import BookAccessRoute, { useBookContext } from "@/app/components/BookAccessRoute";
+import { getBookPdfFile } from "@/lib/api";
 
 // Динамический импорт PDF компонентов для избежания SSR проблем
 const Document = dynamic(() => import("react-pdf").then((mod) => mod.Document), { 
@@ -18,7 +19,94 @@ const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), {
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-export default function BookPage() {
+function BookContent() {
+  const { bookData } = useBookContext();
+  const [pdfFile, setPdfFile] = useState<string | null>(null);
+  const [isLoadingPdf, setIsLoadingPdf] = useState(true);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+
+  // Загружаем PDF файл из API
+  useEffect(() => {
+    const loadPdfFromApi = async () => {
+      if (!bookData?.slug) return;
+      
+      try {
+        setIsLoadingPdf(true);
+        setPdfError(null);
+        
+        const accessToken = localStorage.getItem("access_token");
+        if (!accessToken) {
+          throw new Error("Токен доступа не найден");
+        }
+        
+        console.log("📖 Загружаем PDF для slug:", bookData.slug);
+        const pdfUrl = await getBookPdfFile(accessToken, bookData.slug);
+        setPdfFile(pdfUrl);
+        console.log("📖 PDF загружен успешно:", pdfUrl);
+        
+      } catch (err) {
+        console.error("Ошибка загрузки PDF:", err);
+        setPdfError("Ошибка загрузки PDF файла");
+      } finally {
+        setIsLoadingPdf(false);
+      }
+    };
+
+    loadPdfFromApi();
+  }, [bookData?.slug]);
+
+  // Очистка blob URL при размонтировании
+  useEffect(() => {
+    return () => {
+      if (pdfFile && pdfFile.startsWith('blob:')) {
+        URL.revokeObjectURL(pdfFile);
+      }
+    };
+  }, [pdfFile]);
+
+  if (isLoadingPdf) {
+    return (
+      <div className="w-full min-h-[800px] bg-black h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#fca311] mx-auto mb-4"></div>
+          <p className="text-gray-400">Загрузка PDF из API...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (pdfError) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <p className="text-red-400 text-xl mb-2">Ошибка загрузки PDF</p>
+          <p className="text-gray-400">{pdfError}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 px-6 py-2 bg-[#fca311] text-black rounded-lg hover:bg-[#E8850A] transition-colors"
+          >
+            Попробовать снова
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!pdfFile) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-400">PDF файл не найден</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <BookViewer pdfFile={pdfFile} />;
+}
+
+function BookViewer({ pdfFile }: { pdfFile: string }) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [numPages, setNumPages] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +117,7 @@ export default function BookPage() {
   const [pagesLoaded, setPagesLoaded] = useState<Set<number>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
   const [isSmallMobile, setIsSmallMobile] = useState(false);
-  const [containerHeight, setContainerHeight] = useState(826.49);
+  // Фиксированная высота контейнера PDF
   const [mobileViewportWidth, setMobileViewportWidth] = useState(585);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
@@ -44,12 +132,9 @@ export default function BookPage() {
       // Для маленьких экранов используем полную ширину viewport
       if (width < 500) {
         setMobileViewportWidth(width); // 100% ширины экрана
-        // Вычисляем высоту пропорционально ширине (стандартное соотношение A4: 1.414)
-        setContainerHeight(width * 1.414);
         // setViewportWidth(width); // для PDF страниц
       } else {
         // setViewportWidth(585); // стандартная ширина
-        setContainerHeight(826.49); // стандартная высота
         setMobileViewportWidth(585);
       }
     };
@@ -235,8 +320,7 @@ export default function BookPage() {
   console.log("Render state:", { isPdfReady, isLoading, error, currentPage, numPages });
 
   return (
-    <BookAccessRoute>
-      <div className={isFullscreen ? "fixed inset-0 bg-black z-50" : ""}>
+    <div className={isFullscreen ? "fixed inset-0 bg-black z-50" : ""}>
         {!isFullscreen && (
           <div className="text-center bg-black pb-2 pt-15">
             <h1 className="text-4xl font-bold text-[#fca311] mb-4">IELTS MAXXX 1.0</h1>
@@ -251,8 +335,8 @@ export default function BookPage() {
                ? 'h-[92vh] w-full bg-black' 
                : 'h-[92vh] w-full bg-black'
              : isSmallMobile 
-               ? 'p-4 pt-8 pb-20 bg-black' 
-               : 'p-4 pt-8 bg-black'
+               ? 'p-4 pt-8 pb-20 bg-black min-h-[900px]' 
+               : 'p-4 pt-8 bg-black min-h-[900px]'
          }`}
          onTouchStart={handleTouchStart}
          onTouchMove={handleTouchMove}
@@ -263,12 +347,13 @@ export default function BookPage() {
              ? 'w-full' 
              : 'max-w-[585px] xl:max-w-[1170px]'
          }`} style={{ 
-           height: isFullscreen ? (isSmallMobile ? 'auto' : '100%') : `${containerHeight}px`,
+           height: isFullscreen ? (isSmallMobile ? 'auto' : '100%') : '826px', // Фиксированная высота
            width: isSmallMobile ? '100%' : undefined,
-           maxHeight: isFullscreen && isSmallMobile ? '90vh' : undefined
+           maxHeight: isFullscreen && isSmallMobile ? '90vh' : undefined,
+           minHeight: isFullscreen ? undefined : '826px' // Минимальная высота
          }}>
            {error ? (
-             <div className="w-full h-full flex items-center justify-center">
+             <div className="w-full h-full flex items-center justify-center" style={{ minHeight: '826px' }}>
                <div className="text-center">
                  <div className="text-red-500 text-6xl mb-4">⚠️</div>
                  <p className="text-red-400 text-xl mb-2">Ошибка загрузки</p>
@@ -285,7 +370,7 @@ export default function BookPage() {
                </div>
              </div>
            ) : !isPdfReady ? (
-             <div className="w-full h-full flex items-center justify-center">
+             <div className="w-full h-full flex items-center justify-center" style={{ minHeight: '826px' }}>
                <div className="text-center">
                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#fca311] mx-auto mb-4"></div>
                  <p className="text-gray-400">Инициализация Книги...</p>
@@ -293,7 +378,7 @@ export default function BookPage() {
              </div>
            ) : (
              <Document
-               file="/book.pdf"
+               file={pdfFile}
                onLoadSuccess={onDocumentLoadSuccess}
                onLoadProgress={onDocumentLoadProgress}
                onLoadError={onDocumentLoadError}
@@ -516,6 +601,13 @@ export default function BookPage() {
        </div>
        )}
       </div>
+    );
+  }
+
+export default function BookPage() {
+  return (
+    <BookAccessRoute>
+      <BookContent />
     </BookAccessRoute>
   );
 }

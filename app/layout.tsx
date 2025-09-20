@@ -5,7 +5,12 @@ import atypText from './fonts/atyp';
 
 export const metadata = {
   title: 'IELTS MAXXX',
-  description: 'Лендинг книги IELTS MAXXX',
+  description: 'IELTS MAXXX',
+  icons: {
+    icon: '/logo.svg',
+    shortcut: '/logo.svg',
+    apple: '/logo.svg',
+  },
 }
 
 export default function RootLayout({
