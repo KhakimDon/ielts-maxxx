@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { shadow } from "pdfjs-dist";
 
 export default function GiveawaySection() {
   return (
@@ -39,8 +40,10 @@ export default function GiveawaySection() {
             <p className="text-sm font-semibold text-white mb-2">
               Осталось до покупки
             </p>
-            <div className="bg-black border-2 border-[#fca311] text-[#fca311] font-mono text-2xl px-6 py-2 rounded-sm tracking-widest shadow-[0_0_10px_#fca311] inline-block">
-              222-3000
+            <div className="bg-black relative leading-[40px] border-2 border-[#fca311] text-[#fca311] font-digital text-[40px] px-3  rounded-sm tracking-widest shadow-[0_0_10px_#fca311] inline-block shad">
+              <p>
+                222-3000
+              </p>
             </div>
           </div>
         </div>
