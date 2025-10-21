@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useUserData } from "@/hooks/useUserData";
 import { loginUser } from "@/lib/api";
 import { Eye, EyeOff } from "lucide-react";
-import { IMaskInput } from "react-imask";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,7 +20,7 @@ export default function AuthModal({
   const router = useRouter();
   const { login } = useUserData();
 
-  const [phoneOrEmail, setPhoneOrEmail] = useState("+998 ");
+  const [phoneOrEmail, setPhoneOrEmail] = useState("+");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +30,7 @@ export default function AuthModal({
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         // Очищаем поля при закрытии
-        setPhoneOrEmail("+998 ");
+        setPhoneOrEmail("+");
         setPassword("");
         setError("");
         setShowPassword(false);
@@ -46,18 +45,24 @@ export default function AuthModal({
 
   // Функция для обработки ввода номера телефона
   const handlePhoneChange = (value: string) => {
-    // Если пользователь пытается удалить +998, не позволяем
-    if (value.length < 5) {
-      setPhoneOrEmail("+998 ");
+    // Фильтруем только цифры и +
+    const filteredValue = value.replace(/[^0-9+]/g, '');
+
+    // Если пользователь пытается удалить +, не позволяем
+    if (filteredValue.length < 1) {
+      setPhoneOrEmail("+");
       return;
     }
-    setPhoneOrEmail(value);
+    // Ограничиваем длину до 15 символов (включая +)
+    if (filteredValue.length > 15) {
+      return;
+    }
+    setPhoneOrEmail(filteredValue);
   };
 
-  // Функция для получения только цифр номера (без +998)
+  // Функция для получения только цифр номера (без +)
   const getPhoneNumber = (phone: string) => {
-    const numbers = phone.replace(/\D/g, '');
-    return numbers.startsWith('998') ? numbers.substring(3) : numbers;
+    return phone.replace(/\D/g, '');
   };
 
   const handleLogin = async () => {
@@ -66,8 +71,21 @@ export default function AuthModal({
 
     try {
       // Валидация полей
-      if (!phoneOrEmail.trim() || phoneOrEmail === "+998 ") {
+      if (!phoneOrEmail.trim() || phoneOrEmail === "+") {
         setError("Введите номер телефона");
+        return;
+      }
+
+      // Проверяем длину номера (минимум 8 цифр, максимум 14)
+      const phoneNumber = getPhoneNumber(phoneOrEmail);
+      if (phoneNumber.length < 8 || phoneNumber.length > 14) {
+        setError("Номер телефона должен содержать от 8 до 14 цифр");
+        return;
+      }
+      
+      // Проверяем, что номер начинается с кода страны (минимум 3 цифры)
+      if (phoneNumber.length < 10) {
+        setError("Введите полный номер с кодом страны");
         return;
       }
       if (!password.trim()) {
@@ -75,21 +93,23 @@ export default function AuthModal({
         return;
       }
 
-      // Получаем только цифры номера для отправки
-      const phoneNumber = getPhoneNumber(phoneOrEmail);
-      if (phoneNumber.length < 9) {
-        setError("Введите корректный номер телефона");
-        return;
-      }
+      // Номер уже проверен выше, отправляем номер без +
+      const phoneForApi = phoneOrEmail.startsWith('+') ? phoneOrEmail.substring(1) : phoneOrEmail;
+      
+      console.log("🔍 Отладка номера:", {
+        введен: phoneOrEmail,
+        для_апи: phoneForApi,
+        только_цифры: getPhoneNumber(phoneOrEmail)
+      });
 
       // Выполняем вход через API
-      const loginData = await loginUser(phoneNumber, password);
-      
+      const loginData = await loginUser(phoneForApi, password);
+
       // Сохраняем токены и получаем данные пользователя
       await login(loginData.access, loginData.refresh);
 
       // Очищаем поля формы
-      setPhoneOrEmail("+998 ");
+      setPhoneOrEmail("+");
       setPassword("");
       setError("");
       setShowPassword(false);
@@ -113,7 +133,7 @@ export default function AuthModal({
       className="fixed inset-0 bg-[#00000060] backdrop-blur-sm z-50 flex items-center justify-center"
       onClick={() => {
         // Очищаем поля при закрытии
-        setPhoneOrEmail("+998 ");
+        setPhoneOrEmail("+");
         setPassword("");
         setError("");
         setShowPassword(false);
@@ -127,7 +147,7 @@ export default function AuthModal({
         <button
           onClick={() => {
             // Очищаем поля при закрытии
-            setPhoneOrEmail("+998 ");
+            setPhoneOrEmail("+");
             setPassword("");
             setError("");
             onClose();
@@ -139,14 +159,26 @@ export default function AuthModal({
 
         <h2 className="text-3xl font-bold text-[#fca311] mb-6">Войти</h2>
 
-        <IMaskInput
-          mask="+998 00 000-00-00"
-          value={phoneOrEmail}
-          onAccept={(value: string) => handlePhoneChange(value)}
-          placeholder="+998 99 999-99-99"
-          className="w-full mb-3 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white text-white"
-          lazy={false}
-        />
+        <div className="relative mb-3">
+          <input
+            type="tel"
+            value={phoneOrEmail}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            onKeyPress={(e) => {
+              // Разрешаем только цифры, + и специальные клавиши
+              if (!/[0-9+]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
+            className="w-full px-4 py-2 border border-[#fca311] rounded-md bg-black text-white"
+            maxLength={15}
+          />
+          {phoneOrEmail === "+" && (
+            <div className="absolute !left-[35px] top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+              Введите номер телефона
+            </div>
+          )}
+        </div>
 
         <div className="relative mb-2">
           <input
@@ -170,9 +202,8 @@ export default function AuthModal({
         <button
           onClick={handleLogin}
           disabled={isLoading}
-          className={`w-full mt-3 cursor-pointer bg-[#fca311] text-white py-2 rounded-md font-semibold hover:opacity-90 ${
-            isLoading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`w-full mt-3 cursor-pointer bg-[#fca311] text-white py-2 rounded-md font-semibold hover:opacity-90 ${isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
         >
           {isLoading ? "Вход..." : "Продолжить"}
         </button>

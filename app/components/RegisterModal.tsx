@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { buildApiUrl, env } from "@/lib/env";
 import { Eye, EyeOff } from "lucide-react";
-import { IMaskInput } from "react-imask";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -21,7 +20,7 @@ export default function RegisterModal({
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("+998 ");
+  const [phone, setPhone] = useState("+");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -34,7 +33,7 @@ export default function RegisterModal({
         // Очищаем поля при закрытии
         setFirstName("");
         setLastName("");
-        setPhone("+998 ");
+        setPhone("+");
         setEmail("");
         setPassword("");
         setError("");
@@ -51,18 +50,24 @@ export default function RegisterModal({
 
   // Функция для обработки ввода номера телефона
   const handlePhoneChange = (value: string) => {
-    // Если пользователь пытается удалить +998, не позволяем
-    if (value.length < 5) {
-      setPhone("+998 ");
+    // Фильтруем только цифры и +
+    const filteredValue = value.replace(/[^0-9+]/g, '');
+    
+    // Если пользователь пытается удалить +, не позволяем
+    if (filteredValue.length < 1) {
+      setPhone("+");
       return;
     }
-    setPhone(value);
+    // Ограничиваем длину до 15 символов (включая +)
+    if (filteredValue.length > 15) {
+      return;
+    }
+    setPhone(filteredValue);
   };
 
-  // Функция для получения только цифр номера (без +998)
+  // Функция для получения только цифр номера (без +)
   const getPhoneNumber = (phone: string) => {
-    const numbers = phone.replace(/\D/g, '');
-    return numbers.startsWith('998') ? numbers.substring(3) : numbers;
+    return phone.replace(/\D/g, '');
   };
 
 
@@ -78,15 +83,21 @@ export default function RegisterModal({
       setError("Введите фамилию");
       return;
     }
-    if (!phone.trim() || phone === "+998 ") {
+    if (!phone.trim() || phone === "+") {
       setError("Введите номер телефона");
       return;
     }
 
     // Получаем только цифры номера для валидации
     const phoneNumber = getPhoneNumber(phone);
-    if (phoneNumber.length < 9) {
-      setError("Введите корректный номер телефона");
+    if (phoneNumber.length < 8 || phoneNumber.length > 14) {
+      setError("Номер телефона должен содержать от 8 до 14 цифр");
+      return;
+    }
+    
+    // Проверяем, что номер начинается с кода страны (минимум 3 цифры)
+    if (phoneNumber.length < 10) {
+      setError("Введите полный номер с кодом страны");
       return;
     }
     if (!email.trim()) {
@@ -101,8 +112,8 @@ export default function RegisterModal({
     setIsLoading(true);
 
     try {
-      // Получаем только цифры номера для отправки
-      const cleanPhone = getPhoneNumber(phone);
+      // Отправляем номер без +
+      const phoneForApi = phone.startsWith('+') ? phone.substring(1) : phone;
       
       // Получаем токен из localStorage для авторизации
       const accessToken = localStorage.getItem("access_token");
@@ -120,7 +131,7 @@ export default function RegisterModal({
           body: JSON.stringify({
             first_name: firstName,
             last_name: lastName,
-            phone_number: cleanPhone,
+            phone_number: phoneForApi,
             email: email,
             password: password,
           }),
@@ -134,7 +145,7 @@ export default function RegisterModal({
         // Очищаем поля формы
         setFirstName("");
         setLastName("");
-        setPhone("+998 ");
+        setPhone("+");
         setEmail("");
         setPassword("");
         setError("");
@@ -146,7 +157,7 @@ export default function RegisterModal({
         onClose();
         
         // Открываем OTP модалку через Header
-        onOpenOTP(cleanPhone);
+        onOpenOTP(phoneForApi);
       } else {
         // Ошибка регистрации
         console.error("Ошибка регистрации:", data);
@@ -169,7 +180,7 @@ export default function RegisterModal({
         // Очищаем поля при закрытии
         setFirstName("");
         setLastName("");
-        setPhone("+998 ");
+        setPhone("+");
         setEmail("");
         setPassword("");
         setError("");
@@ -187,7 +198,7 @@ export default function RegisterModal({
             // Очищаем поля при закрытии
             setFirstName("");
             setLastName("");
-            setPhone("+998 ");
+            setPhone("+");
             setEmail("");
             setPassword("");
             setError("");
@@ -215,14 +226,26 @@ export default function RegisterModal({
           className="w-full mb-3 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white"
         />
 
-        <IMaskInput
-          mask="+998 00 000-00-00"
-          value={phone}
-          onAccept={(value: string) => handlePhoneChange(value)}
-          placeholder="+998 99 999-99-99"
-          className="w-full mb-3 px-4 py-2 border border-[#fca311] rounded-md bg-black placeholder-white text-white"
-          lazy={false}
-        />
+        <div className="relative mb-3">
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            onKeyPress={(e) => {
+              // Разрешаем только цифры, + и специальные клавиши
+              if (!/[0-9+]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
+            className="w-full px-4 py-2 border border-[#fca311] rounded-md bg-black text-white"
+            maxLength={15}
+          />
+          {phone === "+" && (
+            <div className="absolute !left-[30px] top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+              Введите номер телефона
+            </div>
+          )}
+        </div>
 
         <input
           value={email}

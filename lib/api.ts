@@ -101,8 +101,8 @@ export async function refreshToken(refreshToken: string): Promise<RefreshRespons
 // Функция для входа пользователя
 export async function loginUser(phone: string, password: string): Promise<LoginResponse> {
   try {
-    // Убираем +998 или 998 из начала номера телефона для бэкенда
-    const cleanPhone = phone.replace(/^(\+998|998)/, '');
+    // Отправляем номер как есть (уже обработан в компоненте)
+    console.log("🔍 loginUser получает номер:", phone);
     
     const res = await fetch(buildApiUrl(env.LOGIN_ENDPOINT), {
       method: "POST",
@@ -111,7 +111,7 @@ export async function loginUser(phone: string, password: string): Promise<LoginR
         "Accept": "application/json", 
       },
       body: JSON.stringify({
-        phone_number: cleanPhone,
+        phone_number: phone,
         password,
       }),
     });
