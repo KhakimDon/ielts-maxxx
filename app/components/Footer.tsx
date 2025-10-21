@@ -36,18 +36,71 @@ export default function Footer() {
           </div>
 
           {/* Контакты */}
-          <div className="sm:w-1/1 !font-[var(--font-atyp)] !font-semibold tracking-wide">
+          <div className="sm:w-1/2 !font-[var(--font-atyp)] !font-semibold tracking-wide">
             <h4 className="text-[#fca311] mb-3">Контакты</h4>
-            <p className="leading-snug">
-              Ташкент, Юнусабадский район, махаллинский сход граждан Адолат, <br />
-              4-й квартал, 20
-            </p>
-            <a 
-              href="tel:+998970066066" 
-              className="mt-2 text-[#fca311] hover:text-white transition-colors cursor-pointer"
-            >
-              +998 97 006 60 66
-            </a>
+            <div className="space-y-2">
+              <p className="text-[#fca311] font-bold text-lg">ООО «THE BOTIROFF»</p>
+              <p className="text-white">
+                <span>Юридический адрес:</span> Узбекистан, Ташкент, Юнусобод-4
+              </p>
+              <p className="text-white">
+                <span className="text-[#fca311]">Тел:</span> 
+                <a 
+                  href="tel:+998970066066" 
+                  className="ml-1 text-[#fca311] hover:text-white transition-colors cursor-pointer"
+                >
+                  +998 97 006 60 66
+                </a>
+              </p>
+              <p className="text-white">
+                <span className="text-[#fca311]">Почта:</span> 
+                <a 
+                  href="mailto:botirov.d@yahoo.com" 
+                  className="ml-1 text-[#fca311] hover:text-white transition-colors cursor-pointer"
+                >
+                  botirov.d@yahoo.com
+                </a>
+              </p>
+            </div>
+          </div>
+
+          {/* Политики */}
+          <div className="sm:w-1/2 !font-[var(--font-atyp)] !font-semibold tracking-wide">
+            <h4 className="text-[#fca311] mb-3">Политики</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link 
+                  href="/agreement" 
+                  className="text-white hover:text-[#fca311] transition-colors"
+                >
+                  Условия соглашения
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/privacy" 
+                  className="text-white hover:text-[#fca311] transition-colors"
+                >
+                  Политика конфиденциальности
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/security" 
+                  className="text-white hover:text-[#fca311] transition-colors"
+                >
+                  Политика безопасности
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/payment" 
+                  className="text-white hover:text-[#fca311] transition-colors"
+                >
+                  Платежная политика
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
 

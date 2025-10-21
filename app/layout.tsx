@@ -3,6 +3,7 @@ import Header from '@/app/components/Header'
 import Footer from '@/app/components/Footer'
 import atypText from './fonts/atyp';
 import { digital7 } from './fonts/digital';
+import dmSans from './fonts/dm-sans';
 
 export const metadata = {
   title: 'IELTS MAXXX',
@@ -24,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${atypText.variable} ${digital7.variable}`}>
+      <body className={`${atypText.variable} ${digital7.variable} ${dmSans.variable}`}>
         <Header />
         {children}
         <Footer />

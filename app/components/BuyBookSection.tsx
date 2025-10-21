@@ -2,6 +2,7 @@
 import Image from "next/image";
 import RegisterModal from "./RegisterModal";
 import AuthModal from "./AuthModal";
+import PaymentModal from "./PaymentModal";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -12,18 +13,29 @@ export default function AboutSection() {
   const router = useRouter();
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [agreed, setAgreed] = useState(false);
 
   const handleAction = () => {
     if (!agreed) return; 
 
     if (isAuthenticated) {
-      // Если пользователь зарегистрирован - переходим к чтению книги
-      router.push("/book"); 
+      // Если пользователь зарегистрирован - показываем модалку выбора способа оплаты
+      setIsPaymentOpen(true);
     } else {
       // Если не зарегистрирован - показываем модалку входа
       setIsAuthOpen(true);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    // После успешной оплаты можно показать уведомление или перенаправить
+    console.log("Оплата успешно инициирована");
+  };
+
+  const handlePaymentError = (message: string) => {
+    console.error("Ошибка оплаты:", message);
+    // Здесь можно показать уведомление об ошибке
   };
 
   return (
@@ -112,6 +124,13 @@ export default function AboutSection() {
               setIsAuthOpen(false);
               setIsRegisterOpen(true);
             }}
+          />
+
+          <PaymentModal
+            isOpen={isPaymentOpen}
+            onClose={() => setIsPaymentOpen(false)}
+            onSuccess={handlePaymentSuccess}
+            onError={handlePaymentError}
           />
         </div>
       </div>

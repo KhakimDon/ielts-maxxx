@@ -1,0 +1,288 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import WithdrawModal from "./WithdrawModal";
+// import { getReferralData, withdrawFunds } from "@/lib/api"; // Пока не используется
+
+interface ReferralData {
+  referral_link: string;
+  balance: number;
+  currency: string;
+  purchases: Array<{
+    id: number;
+    user_name: string;
+    purchase_date: string;
+    amount: number;
+    currency: string;
+    usd_amount?: number;
+  }>;
+}
+
+export default function AmbassadorSection() {
+  const { isAuthenticated } = useAuth();
+  const [referralData, setReferralData] = useState<ReferralData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchReferralData();
+    }
+  }, [isAuthenticated]);
+
+  const fetchReferralData = async () => {
+    try {
+      setLoading(true);
+      
+      // Статичные данные для демонстрации
+      const mockData: ReferralData = {
+        referral_link: "https://leltsmaxxx.uz/ref/ali123",
+        balance: 100000,
+        currency: "UZS",
+        purchases: [
+          {
+            id: 1,
+            user_name: "KHAKIM ALMAMEDOV",
+            purchase_date: "18:00 - 25.05.25",
+            amount: 100000,
+            currency: "UZS",
+            usd_amount: 10
+          },
+          {
+            id: 2,
+            user_name: "DILSHOD KARIMOV",
+            purchase_date: "18:00 - 25.05.25",
+            amount: 100000,
+            currency: "UZS",
+            usd_amount: 10
+          },
+          {
+            id: 3,
+            user_name: "UMIDA TURSUNOVA",
+            purchase_date: "18:00 - 25.05.25",
+            amount: 100000,
+            currency: "UZS",
+            usd_amount: 10
+          },
+          {
+            id: 4,
+            user_name: "UMIDA TURSUNOVA",
+            purchase_date: "18:00 - 25.05.25",
+            amount: 100000,
+            currency: "UZS",
+            usd_amount: 10
+          }
+        ]
+      };
+
+      setReferralData(mockData);
+    } catch (err) {
+      console.error("Ошибка при загрузке реферальных данных:", err);
+      setError("Ошибка при загрузке данных");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyReferralLink = async () => {
+    if (!referralData) return;
+    
+    try {
+      // Пробуем современный API
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(referralData.referral_link);
+      } else {
+        // Fallback для старых браузеров и мобильных устройств
+        const textArea = document.createElement('textarea');
+        textArea.value = referralData.referral_link;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+          // Показываем текст для ручного копирования
+          alert(`Скопируйте ссылку вручную:\n${referralData.referral_link}`);
+          return;
+        }
+        
+        document.body.removeChild(textArea);
+      }
+      
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Ошибка при копировании:", err);
+      // Показываем текст для ручного копирования
+      alert(`Скопируйте ссылку вручную:\n${referralData.referral_link}`);
+    }
+  };
+
+  const handleWithdraw = () => {
+    if (!referralData) return;
+    setIsWithdrawModalOpen(true);
+  };
+
+  const formatAmount = (amount: number, currency: string) => {
+    return `${amount.toLocaleString()} ${currency}`;
+  };
+
+  const formatUsdAmount = (usdAmount?: number) => {
+    return usdAmount ? `(~$${usdAmount})` : "";
+  };
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-black border border-[#F7971D] rounded-2xl p-6 mb-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-700 rounded mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="space-y-4">
+              <div className="h-4 bg-gray-700 rounded w-1/3"></div>
+              <div className="h-12 bg-gray-700 rounded"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-4 bg-gray-700 rounded w-1/3"></div>
+              <div className="h-12 bg-gray-700 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-black border border-[#F7971D] rounded-2xl p-6 mb-8">
+        <div className="text-center text-red-400">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!referralData) {
+    return null;
+  }
+
+  return (
+    <div className="sm:w-[90%] w-full rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 font-[var(--font-dm-sans)]">
+      {/* Заголовок */}
+      <h2 className="text-2xl sm:text-3xl font-bold text-[#F7971D] text-center mb-6 sm:mb-8 px-4">
+        СТАНЬ НАШИМ АМБАССАДОРОМ
+      </h2>
+
+      {/* Реферальная ссылка и баланс */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-[200px] mb-8">
+        {/* Реферальная ссылка */}
+        <div className="space-y-3">
+          <label className="block text-[#F7971D] font-semibold text-sm sm:text-base">
+            ВАША РЕФЕРАЛЬНАЯ ССЫЛКА
+          </label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              value={referralData.referral_link}
+              readOnly
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-[#F7971D] rounded-xl text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#F7971D]/50"
+            />
+            <button
+              onClick={copyReferralLink}
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-[#F7971D] text-white font-semibold rounded-xl hover:bg-[#F7971D]/90 transition-colors whitespace-nowrap text-sm sm:text-base"
+            >
+              {copied ? "Скопировано!" : "Скопировать"}
+            </button>
+          </div>
+        </div>
+
+        {/* Баланс */}
+        <div className="space-y-3">
+          <label className="block text-[#F7971D] font-semibold text-sm sm:text-base">
+            ВАШ БАЛАНС
+          </label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-[#F7971D] rounded-xl text-white text-sm sm:text-base">
+              {formatAmount(referralData.balance, referralData.currency)}
+            </div>
+            <button 
+              onClick={handleWithdraw}
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-[#F7971D] text-white font-semibold rounded-xl hover:bg-[#F7971D]/90 transition-colors whitespace-nowrap text-sm sm:text-base"
+            >
+              Вывести средства
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Таблица покупок */}
+      <div className="space-y-4">
+        <h3 className="text-lg sm:text-xl font-bold text-white">
+          КУПИЛИ ВО ТВОЕЙ РЕФЕРАЛКЕ:
+        </h3>
+        
+        <div className="border border-[#F7971D] rounded-xl overflow-hidden">
+          {/* Заголовки таблицы - скрыты на мобильных */}
+          <div className="hidden sm:grid grid-cols-3 gap-4 p-4 text-[#F7971D] border-b border-[#F7971D] font-semibold">
+            <div>ПОЛЬЗОВАТЕЛЬ</div>
+            <div>ДАТА ПОКУПКИ</div>
+            <div>СУММА</div>
+          </div>
+          
+          {referralData.purchases.length > 0 ? (
+            referralData.purchases.map((purchase, index) => (
+              <div
+                key={purchase.id}
+                className={`${
+                  index < referralData.purchases.length - 1 ? 'border-b border-[#F7971D]' : ''
+                }`}
+              >
+                {/* Десктопная версия */}
+                <div className="hidden sm:grid grid-cols-3 gap-4 p-4 text-white">
+                  <div className="font-medium">{purchase.user_name}</div>
+                  <div>{purchase.purchase_date}</div>
+                  <div>
+                    +{formatAmount(purchase.amount, purchase.currency)} {formatUsdAmount(purchase.usd_amount)}
+                  </div>
+                </div>
+                
+                {/* Мобильная версия */}
+                <div className="sm:hidden p-4 text-white">
+                  <div className="font-medium text-[#F7971D] mb-2">{purchase.user_name}</div>
+                  <div className="text-sm text-gray-300 mb-1">{purchase.purchase_date}</div>
+                  <div className="text-sm">
+                    +{formatAmount(purchase.amount, purchase.currency)} {formatUsdAmount(purchase.usd_amount)}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-6 sm:p-8 text-center text-gray-400 text-sm sm:text-base">
+              Пока нет покупок по вашей реферальной ссылке
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Модалка вывода средств */}
+      {referralData && (
+        <WithdrawModal
+          isOpen={isWithdrawModalOpen}
+          onClose={() => setIsWithdrawModalOpen(false)}
+          balance={referralData.balance}
+          currency={referralData.currency}
+        />
+      )}
+    </div>
+  );
+}

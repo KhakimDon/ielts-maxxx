@@ -376,9 +376,19 @@ interface CreateOrderResponse {
 }
 
 // Функция для создания заказа
-export async function createOrder(accessToken: string): Promise<CreateOrderResponse> {
+export async function createOrder(accessToken: string, currency: string = "uzs", referralCode?: string): Promise<CreateOrderResponse> {
   try {
-    console.log("🛒 Создаем заказ...");
+    console.log("🛒 Создаем заказ...", `Валюта: ${currency}`, referralCode ? `Реферальный код: ${referralCode}` : '');
+    
+    const requestBody: any = {
+      book: 5,
+      currency: currency
+    };
+    
+    // Добавляем реферальный код, если он указан
+    if (referralCode && referralCode.trim()) {
+      requestBody.referral_code = referralCode.trim();
+    }
     
     const res = await fetch(buildApiUrl("/main/order/create/"), {
       method: "POST",
@@ -387,10 +397,7 @@ export async function createOrder(accessToken: string): Promise<CreateOrderRespo
         "Content-Type": "application/json",
         "X-CSRFTOKEN": env.CSRF_TOKEN,
       },
-      body: JSON.stringify({
-        book: 5,
-        currency: "uzs"
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!res.ok) {
@@ -405,6 +412,82 @@ export async function createOrder(accessToken: string): Promise<CreateOrderRespo
     return responseData;
   } catch (err) {
     console.error("Ошибка создания заказа:", err);
+    throw err;
+  }
+}
+
+// Интерфейс для реферальных данных
+interface ReferralData {
+  referral_link: string;
+  balance: number;
+  currency: string;
+  purchases: Array<{
+    id: number;
+    user_name: string;
+    purchase_date: string;
+    amount: number;
+    currency: string;
+    usd_amount?: number;
+  }>;
+}
+
+// Функция для получения реферальных данных
+export async function getReferralData(accessToken: string): Promise<ReferralData> {
+  try {
+    console.log("🔗 Получаем реферальные данные...");
+    
+    const res = await fetch(buildApiUrl("/main/referral/"), {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Ошибка получения реферальных данных:", errorText);
+      throw new Error("Ошибка получения реферальных данных");
+    }
+
+    const responseData = await res.json();
+    console.log("🔗 Реферальные данные получены:", responseData);
+    
+    return responseData;
+  } catch (err) {
+    console.error("Ошибка получения реферальных данных:", err);
+    throw err;
+  }
+}
+
+// Функция для вывода средств
+export async function withdrawFunds(accessToken: string, amount: number, currency: string): Promise<void> {
+  try {
+    console.log("💰 Выводим средства...", { amount, currency });
+    
+    const res = await fetch(buildApiUrl("/main/referral/withdraw/"), {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+      body: JSON.stringify({
+        amount,
+        currency
+      }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Ошибка вывода средств:", errorText);
+      throw new Error("Ошибка вывода средств");
+    }
+
+    console.log("💰 Средства успешно выведены");
+  } catch (err) {
+    console.error("Ошибка вывода средств:", err);
     throw err;
   }
 }
