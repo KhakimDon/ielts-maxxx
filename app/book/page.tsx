@@ -145,6 +145,27 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
+  const toggleFullscreen = useCallback(() => {
+    if (!isFullscreen) {
+      const element = document.documentElement;
+      if (element.requestFullscreen) {
+        element.requestFullscreen().then(() => {
+          setIsFullscreen(true);
+        }).catch((err) => {
+          console.error('Ошибка входа в полноэкранный режим:', err);
+        });
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().then(() => {
+          setIsFullscreen(false);
+        }).catch((err) => {
+          console.error('Ошибка выхода из полноэкранного режима:', err);
+        });
+      }
+    }
+  }, [isFullscreen]);
+
   // Обработчик событий полноэкранного режима
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -171,7 +192,7 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
-  }, [isFullscreen]);
+  }, [isFullscreen, toggleFullscreen]);
 
   // Настройка PDF worker при монтировании компонента
   useEffect(() => {
@@ -251,27 +272,6 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
       const increment = isMobile ? 1 : 2;
       setCurrentPage(prev => Math.min(prev + increment, numPages));
       setTimeout(() => setIsPageTransitioning(false), 300);
-    }
-  };
-
-  const toggleFullscreen = () => {
-    if (!isFullscreen) {
-      const element = document.documentElement;
-      if (element.requestFullscreen) {
-        element.requestFullscreen().then(() => {
-          setIsFullscreen(true);
-        }).catch((err) => {
-          console.error('Ошибка входа в полноэкранный режим:', err);
-        });
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().then(() => {
-          setIsFullscreen(false);
-        }).catch((err) => {
-          console.error('Ошибка выхода из полноэкранного режима:', err);
-        });
-      }
     }
   };
 

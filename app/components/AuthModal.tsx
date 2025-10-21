@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useUserData } from "@/hooks/useUserData";
 import { loginUser } from "@/lib/api";
 import { Eye, EyeOff } from "lucide-react";
 import { IMaskInput } from "react-imask";
@@ -19,7 +19,7 @@ export default function AuthModal({
   onSwitchToRegister,
 }: AuthModalProps) {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login } = useUserData();
 
   const [phoneOrEmail, setPhoneOrEmail] = useState("+998 ");
   const [password, setPassword] = useState("");

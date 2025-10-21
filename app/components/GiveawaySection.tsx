@@ -1,7 +1,10 @@
 "use client";
 import Image from "next/image";
+import { useOrderCount } from '../../hooks/useOrderCount';
 
 export default function GiveawaySection() {
+  const { displayCount } = useOrderCount();
+
   return (
     <section id="promo" className="relative bg-black text-white py-20 px-4 sm:px-10 overflow-hidden">
       <h2 className="text-[#fca311] !font-[var(--font-atyp)] text-3xl sm:text-4xl !font-extrabold uppercase leading-tight text-center mb-16">
@@ -39,9 +42,9 @@ export default function GiveawaySection() {
             <p className="text-sm font-semibold text-white mb-2">
               Осталось до покупки
             </p>
-            <div className="bg-black relative leading-[40px] border-2 border-[#fca311] text-[#fca311] font-digital text-[40px] px-3  rounded-sm tracking-widest shadow-[0_0_10px_#fca311] inline-block shad">
+            <div className="bg-black relative leading-[40px] border-2 border-[#fca311] text-[#fca311] font-digital text-[40px] px-3 rounded-sm tracking-widest shadow-[0_0_10px_#fca311] inline-block w-[240px] text-center" style={{textShadow: '0 0 3px #fca311, 0 0 20px #fca311, 0 0 30px #fca311'}}>
               <p>
-                222-3000
+                {`${displayCount.toString().padStart(4, '0')}-3000`}
               </p>
             </div>
           </div>

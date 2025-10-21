@@ -1,56 +1,29 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProtectedRoute from "@/app/components/ProtectedRoute";
-import { getBookList } from "@/lib/api";
+import { useBookData } from "@/hooks/useBookData";
+import { lookupReferralCode } from "@/lib/api";
 import PaymentModal from "@/app/components/PaymentModal";
 import AmbassadorSection from "@/app/components/AmbassadorSection";
 
-interface BookData {
-  id: number;
-  title: string;
-  slug: string;
-  is_purchased: boolean;
-}
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [bookData, setBookData] = useState<BookData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { bookData, isLoading, error, refreshBookData } = useBookData();
   const [hasAttemptedPurchase, setHasAttemptedPurchase] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [referralOwner, setReferralOwner] = useState<{first_name: string, last_name: string} | null>(null);
+  const [isLookingUpReferral, setIsLookingUpReferral] = useState(false);
+  const [referralLookupError, setReferralLookupError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchBookData = async () => {
-      const accessToken = localStorage.getItem("access_token");
-      if (!accessToken) {
-        setLoading(false);
-        return;
-      }
-      
-      try {
-        setLoading(true);
-        const books = await getBookList(accessToken);
-        // Берем первую книгу (у нас всего одна)
-        if (books && books.length > 0) {
-          setBookData(books[0]);
-        }
-      } catch (err) {
-        console.error("Ошибка загрузки данных книги:", err);
-        setError("Ошибка загрузки данных книги");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBookData();
-  }, []); // Пустой массив зависимостей - выполняется только один раз
+  // Получаем первую книгу (у нас всего одна)
+  const currentBook = bookData && bookData.length > 0 ? bookData[0] : null;
 
   const handleReadBook = () => {
     router.push("/book");
@@ -71,7 +44,7 @@ export default function ProfilePage() {
 
   const handlePaymentError = (message: string) => {
     console.error("Ошибка оплаты:", message);
-    setError(message);
+    // Можно добавить уведомление пользователю здесь
   };
 
   const handleJoinChannel = () => {
@@ -80,8 +53,31 @@ export default function ProfilePage() {
   };
 
   const handleRefresh = () => {
-    // Обновляем страницу
-    window.location.reload();
+    // Обновляем данные книг
+    refreshBookData();
+  };
+
+  const handleReferralLookup = async () => {
+    if (referralCode.length !== 8) return;
+    
+    try {
+      setIsLookingUpReferral(true);
+      setReferralLookupError(null);
+      
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) {
+        throw new Error("Нет токена доступа");
+      }
+      
+      const response = await lookupReferralCode(accessToken, referralCode);
+      setReferralOwner(response);
+    } catch (err) {
+      console.error("Ошибка поиска реферального кода:", err);
+      setReferralLookupError("Код не найден или ошибка поиска");
+      setReferralOwner(null);
+    } finally {
+      setIsLookingUpReferral(false);
+    }
   };
 
   return (
@@ -93,7 +89,7 @@ export default function ProfilePage() {
 
 
       <div className="w-full max-w-7xl justify-center items-center flex flex-col gap-8">
-        {loading ? (
+        {isLoading ? (
           <div className="w-[90%] border border-[#fca311] rounded-md p-4 flex flex-col md:flex-row items-center gap-10">
             <div className="animate-pulse bg-gray-700 w-40 h-60 rounded"></div>
             <div className="flex-1 w-full">
@@ -106,8 +102,8 @@ export default function ProfilePage() {
           <div className="text-red-500 text-center">
             {error}
           </div>
-        ) : bookData ? (
-          <div className="w-full sm:w-[90%] border border-[#fca311] rounded-md p-3 sm:p-4 flex flex-col md:flex-row items-center gap-6 sm:gap-10">
+        ) : currentBook ? (
+          <div className="w-full sm:w-[90%] border border-[#fca311] rounded-md p-3 sm:p-4 flex flex-col md:flex-row items-center gap-6 sm:gap-10 relative">
             <Image
               className="scale-y-[1.2] scale-x-[1.2] sm:scale-y-[1.5] sm:scale-x-[1.5]"
               src="/bookd.png"
@@ -118,18 +114,18 @@ export default function ProfilePage() {
             <div className="flex-1 w-full">
               <div className="flex justify-between items-start sm:items-center mb-3 sm:mb-0">
                 <h3 className="text-white !font-[var(--font-atyp)] font-bold! text-xl sm:text-2xl lg:text-[30px] pr-2">
-                  {bookData.title} <span className="text-[#fca311]">1.0</span>
+                  {currentBook.title} <span className="text-[#fca311]">1.0</span>
                 </h3>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#fca311" className="size-8 sm:size-10 flex-shrink-0">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" />
                 </svg>
               </div>
               <p className="text-sm mt-1 !font-[var(--font-atyp)] font-normal">
-                Цена книги: 500 000 сум (~$41). <br />
+                Цена книги: 500 000 сум ($41). <br />
                 После оплаты книга будет доступна в вашем личном кабинете.
               </p>
               <div className="flex flex-wrap gap-3 sm:gap-5 mt-4 mb-2">
-                {bookData.is_purchased ? (
+                {currentBook.is_purchased ? (
                   <>
                     <button 
                       onClick={handleJoinChannel}
@@ -164,37 +160,49 @@ export default function ProfilePage() {
                       
                       {/* Инпут для реферального кода */}
                       <div className="w-full sm:max-w-[250px] sm:flex-1 min-w-0">
-                        <input
-                          type="text"
-                          value={referralCode}
-                          onChange={(e) => setReferralCode(e.target.value)}
-                          placeholder="Введите реферальный код"
-                          className="w-full px-3 py-3 sm:pt-[6px] sm:pb-[8px] border border-[#fca311] rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fca311]/50"
-                        />
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            value={referralCode}
+                            maxLength={8}
+                            onChange={(e) => {
+                              setReferralCode(e.target.value);
+                              // Сбрасываем результат при изменении кода
+                              if (referralOwner || referralLookupError) {
+                                setReferralOwner(null);
+                                setReferralLookupError(null);
+                              }
+                            }}
+                            placeholder="Реферальный код"
+                            className="flex-1 px-3 py-3 sm:pt-[6px] sm:pb-[8px] border border-[#fca311] rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fca311]/50"
+                          />
+                          <button
+                            onClick={handleReferralLookup}
+                            disabled={referralCode.length !== 8 || isLookingUpReferral}
+                            className={`px-3 py-3 sm:pt-[6px] sm:pb-[8px] rounded-md text-sm font-medium whitespace-nowrap ${
+                              referralCode.length === 8 && !isLookingUpReferral
+                                ? 'bg-[#fca311] text-white hover:bg-[#E8850A]'
+                                : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                            }`}
+                          >
+                            {isLookingUpReferral ? '...' : 'Применить'}
+                          </button>
+                          
+                          {/* Отображение результата поиска справа от кнопки */}
+                          {referralOwner && (
+                            <div className="text-sm text-green-400 whitespace-nowrap">
+                              Реферальная ссылка: {referralOwner?.first_name} {referralOwner?.last_name}
+                            </div>
+                          )}
+                          
+                          {referralLookupError && (
+                            <div className="text-sm text-red-400 whitespace-nowrap">
+                              {referralLookupError}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       
-                      {hasAttemptedPurchase && (
-                        <button 
-                          onClick={handleRefresh}
-                          className="bg-[#2196F3] cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-3 sm:px-4 py-3 sm:py-2 rounded-md text-xs sm:text-sm hover:bg-[#1976D2] flex items-center gap-2 w-full sm:w-auto justify-center"
-                          title="Обновить страницу"
-                        >
-                          <svg 
-                            className="w-3 h-3 sm:w-4 sm:h-4" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-                            />
-                          </svg>
-                          Обновить
-                        </button>
-                      )}
                     </div>
                     
                     {/* Чекбокс для принятия условий соглашения */}
@@ -221,6 +229,30 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
+            
+            {/* Кнопка обновления в правом нижнем углу */}
+            {hasAttemptedPurchase && (
+              <button 
+                onClick={handleRefresh}
+                className="absolute bottom-3 right-3 bg-[#2196F3] cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-2 py-1 rounded-md text-xs hover:bg-[#1976D2] flex items-center gap-1"
+                title="Обновить страницу"
+              >
+                <svg 
+                  className="w-3 h-3" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                  />
+                </svg>
+                Обновить
+              </button>
+            )}
           </div>
         ) : (
           <div className="text-gray-400 text-center">
@@ -230,6 +262,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="h-[100px]"></div>
+      
       {/* Ambassador Section */}
       <AmbassadorSection />
       </main>
@@ -239,7 +272,7 @@ export default function ProfilePage() {
         onClose={() => setIsPaymentOpen(false)}
         onSuccess={handlePaymentSuccess}
         onError={handlePaymentError}
-        referralCode={referralCode}
+        referralCode={referralOwner ? referralCode : undefined}
       />
     </ProtectedRoute>
   );

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, createContext, useContext } from "react";
 import { useRouter } from "next/navigation";
-import { getBookList } from "@/lib/api";
+import { useBookData } from "@/hooks/useBookData";
 
 interface BookAccessRouteProps {
   children: React.ReactNode;
@@ -28,52 +28,42 @@ export const useBookContext = () => useContext(BookContext);
 
 export default function BookAccessRoute({ children }: BookAccessRouteProps) {
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
+  const { bookData, isLoading, error } = useBookData();
   const [hasAccess, setHasAccess] = useState(false);
-  const [bookData, setBookData] = useState<BookData | null>(null);
 
   useEffect(() => {
-    const checkBookAccess = async () => {
-      try {
-        // Проверяем, есть ли токен доступа
-        const accessToken = localStorage.getItem("access_token");
-        if (!accessToken) {
-          console.log("❌ Нет токена доступа, перенаправляем на главную");
-          router.push("/");
-          return;
-        }
+    // Проверяем, есть ли токен доступа
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) {
+      console.log("❌ Нет токена доступа, перенаправляем на главную");
+      router.push("/");
+      return;
+    }
 
-        // Получаем данные о книгах
-        const books = await getBookList(accessToken);
+    // Если данные загружены, проверяем доступ
+    if (!isLoading && bookData) {
+      if (bookData.length > 0) {
+        const book = bookData[0]; // Берем первую книгу
         
-        if (books && books.length > 0) {
-          const book = books[0]; // Берем первую книгу
-          setBookData(book); // Сохраняем данные книги
-          
-          if (book.is_purchased) {
-            console.log("✅ Книга куплена, доступ разрешен");
-            setHasAccess(true);
-          } else {
-            console.log("❌ Книга не куплена, перенаправляем в профиль");
-            router.push("/profile");
-          }
+        if (book.is_purchased) {
+          console.log("✅ Книга куплена, доступ разрешен");
+          setHasAccess(true);
         } else {
-          console.log("❌ Книги не найдены, перенаправляем в профиль");
+          console.log("❌ Книга не куплена, перенаправляем в профиль");
           router.push("/profile");
         }
-      } catch (error) {
-        console.error("Ошибка проверки доступа к книге:", error);
+      } else {
+        console.log("❌ Книги не найдены, перенаправляем в профиль");
         router.push("/profile");
-      } finally {
-        setIsChecking(false);
       }
-    };
-
-    checkBookAccess();
-  }, [router]);
+    } else if (!isLoading && error) {
+      console.error("Ошибка проверки доступа к книге:", error);
+      router.push("/profile");
+    }
+  }, [bookData, isLoading, error, router]);
 
   // Показываем загрузку во время проверки
-  if (isChecking) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -85,9 +75,9 @@ export default function BookAccessRoute({ children }: BookAccessRouteProps) {
   }
 
   // Если доступ есть, показываем содержимое с контекстом
-  if (hasAccess) {
+  if (hasAccess && bookData) {
     return (
-      <BookContext.Provider value={{ bookData, isLoading: isChecking }}>
+      <BookContext.Provider value={{ bookData: bookData[0], isLoading }}>
         {children}
       </BookContext.Provider>
     );

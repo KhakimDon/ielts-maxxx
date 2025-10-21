@@ -1,102 +1,35 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { useReferralBalance } from "@/hooks/useReferralBalance";
+import { useReferralPurchases } from "@/hooks/useReferralPurchases";
 import WithdrawModal from "./WithdrawModal";
 // import { getReferralData, withdrawFunds } from "@/lib/api"; // Пока не используется
 
-interface ReferralData {
-  referral_link: string;
-  balance: number;
-  currency: string;
-  purchases: Array<{
-    id: number;
-    user_name: string;
-    purchase_date: string;
-    amount: number;
-    currency: string;
-    usd_amount?: number;
-  }>;
-}
 
 export default function AmbassadorSection() {
-  const { isAuthenticated } = useAuth();
-  const [referralData, setReferralData] = useState<ReferralData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { referralData, isLoading, error } = useReferralBalance();
+  const { promoData } = useReferralPurchases();
   const [copied, setCopied] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchReferralData();
-    }
-  }, [isAuthenticated]);
+  // Показываем промокод пользователя
+  const referralCode = referralData?.code || "";
 
-  const fetchReferralData = async () => {
-    try {
-      setLoading(true);
-      
-      // Статичные данные для демонстрации
-      const mockData: ReferralData = {
-        referral_link: "https://leltsmaxxx.uz/ref/ali123",
-        balance: 100000,
-        currency: "UZS",
-        purchases: [
-          {
-            id: 1,
-            user_name: "KHAKIM ALMAMEDOV",
-            purchase_date: "18:00 - 25.05.25",
-            amount: 100000,
-            currency: "UZS",
-            usd_amount: 10
-          },
-          {
-            id: 2,
-            user_name: "DILSHOD KARIMOV",
-            purchase_date: "18:00 - 25.05.25",
-            amount: 100000,
-            currency: "UZS",
-            usd_amount: 10
-          },
-          {
-            id: 3,
-            user_name: "UMIDA TURSUNOVA",
-            purchase_date: "18:00 - 25.05.25",
-            amount: 100000,
-            currency: "UZS",
-            usd_amount: 10
-          },
-          {
-            id: 4,
-            user_name: "UMIDA TURSUNOVA",
-            purchase_date: "18:00 - 25.05.25",
-            amount: 100000,
-            currency: "UZS",
-            usd_amount: 10
-          }
-        ]
-      };
-
-      setReferralData(mockData);
-    } catch (err) {
-      console.error("Ошибка при загрузке реферальных данных:", err);
-      setError("Ошибка при загрузке данных");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Используем баланс из API
+  const balance = referralData?.balance.uzs || 0;
+  const usdBalance = referralData?.balance.usd || 0;
 
   const copyReferralLink = async () => {
-    if (!referralData) return;
+    if (!referralCode) return;
     
     try {
       // Пробуем современный API
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(referralData.referral_link);
+        await navigator.clipboard.writeText(referralCode);
       } else {
         // Fallback для старых браузеров и мобильных устройств
         const textArea = document.createElement('textarea');
-        textArea.value = referralData.referral_link;
+        textArea.value = referralCode;
         textArea.style.position = 'fixed';
         textArea.style.left = '-999999px';
         textArea.style.top = '-999999px';
@@ -109,7 +42,7 @@ export default function AmbassadorSection() {
         } catch (err) {
           console.error('Fallback copy failed:', err);
           // Показываем текст для ручного копирования
-          alert(`Скопируйте ссылку вручную:\n${referralData.referral_link}`);
+          alert(`Скопируйте промокод вручную:\n${referralCode}`);
           return;
         }
         
@@ -121,28 +54,22 @@ export default function AmbassadorSection() {
     } catch (err) {
       console.error("Ошибка при копировании:", err);
       // Показываем текст для ручного копирования
-      alert(`Скопируйте ссылку вручную:\n${referralData.referral_link}`);
+      alert(`Скопируйте промокод вручную:\n${referralCode}`);
     }
   };
 
   const handleWithdraw = () => {
-    if (!referralData) return;
+    if (!promoData) return;
     setIsWithdrawModalOpen(true);
   };
 
-  const formatAmount = (amount: number, currency: string) => {
-    return `${amount.toLocaleString()} ${currency}`;
+  const formatBalance = () => {
+    if (isLoading) return "Загрузка...";
+    if (error) return "Ошибка загрузки";
+    return `${balance.toLocaleString()} Сум${usdBalance > 0 ? ` ($${usdBalance.toFixed(2)})` : ''}`;
   };
 
-  const formatUsdAmount = (usdAmount?: number) => {
-    return usdAmount ? `(~$${usdAmount})` : "";
-  };
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="bg-black border border-[#F7971D] rounded-2xl p-6 mb-8">
         <div className="animate-pulse">
@@ -193,7 +120,7 @@ export default function AmbassadorSection() {
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
-              value={referralData.referral_link}
+              value={referralCode}
               readOnly
               className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-[#F7971D] rounded-xl text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#F7971D]/50"
             />
@@ -213,9 +140,9 @@ export default function AmbassadorSection() {
           </label>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-[#F7971D] rounded-xl text-white text-sm sm:text-base">
-              {formatAmount(referralData.balance, referralData.currency)}
+              {formatBalance()}
             </div>
-            <button 
+            <button
               onClick={handleWithdraw}
               className="px-4 sm:px-6 py-2 sm:py-3 bg-[#F7971D] text-white font-semibold rounded-xl hover:bg-[#F7971D]/90 transition-colors whitespace-nowrap text-sm sm:text-base"
             >
@@ -230,7 +157,7 @@ export default function AmbassadorSection() {
         <h3 className="text-lg sm:text-xl font-bold text-white">
           КУПИЛИ ВО ТВОЕЙ РЕФЕРАЛКЕ:
         </h3>
-        
+
         <div className="border border-[#F7971D] rounded-xl overflow-hidden">
           {/* Заголовки таблицы - скрыты на мобильных */}
           <div className="hidden sm:grid grid-cols-3 gap-4 p-4 text-[#F7971D] border-b border-[#F7971D] font-semibold">
@@ -238,30 +165,55 @@ export default function AmbassadorSection() {
             <div>ДАТА ПОКУПКИ</div>
             <div>СУММА</div>
           </div>
-          
-          {referralData.purchases.length > 0 ? (
-            referralData.purchases.map((purchase, index) => (
+
+          {promoData?.buyers && promoData.buyers.length > 0 ? (
+            promoData.buyers.map((buyer, index) => (
               <div
-                key={purchase.id}
-                className={`${
-                  index < referralData.purchases.length - 1 ? 'border-b border-[#F7971D]' : ''
-                }`}
+                key={buyer.id}
+                className={`${index < promoData.buyers.length - 1 ? 'border-b border-[#F7971D]' : ''
+                  }`}
               >
                 {/* Десктопная версия */}
                 <div className="hidden sm:grid grid-cols-3 gap-4 p-4 text-white">
-                  <div className="font-medium">{purchase.user_name}</div>
-                  <div>{purchase.purchase_date}</div>
+                  <div className="font-medium">
+                    {buyer.first_name || buyer.last_name
+                      ? `${buyer.first_name} ${buyer.last_name}`.trim()
+                      : 'Не указано'
+                    }
+                  </div>
                   <div>
-                    +{formatAmount(purchase.amount, purchase.currency)} {formatUsdAmount(purchase.usd_amount)}
+                    {new Date(buyer.paid_at).toLocaleDateString('ru-RU', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                  <div>
+                    +100.000 Сум
                   </div>
                 </div>
-                
+
                 {/* Мобильная версия */}
                 <div className="sm:hidden p-4 text-white">
-                  <div className="font-medium text-[#F7971D] mb-2">{purchase.user_name}</div>
-                  <div className="text-sm text-gray-300 mb-1">{purchase.purchase_date}</div>
+                  <div className="font-medium text-[#F7971D] mb-2">
+                    {buyer.first_name || buyer.last_name
+                      ? `${buyer.first_name} ${buyer.last_name}`.trim()
+                      : 'Не указано'
+                    }
+                  </div>
+                  <div className="text-sm text-gray-300 mb-1">
+                    {new Date(buyer.paid_at).toLocaleDateString('ru-RU', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
                   <div className="text-sm">
-                    +{formatAmount(purchase.amount, purchase.currency)} {formatUsdAmount(purchase.usd_amount)}
+                    +100.000 Сум
                   </div>
                 </div>
               </div>
@@ -279,8 +231,8 @@ export default function AmbassadorSection() {
         <WithdrawModal
           isOpen={isWithdrawModalOpen}
           onClose={() => setIsWithdrawModalOpen(false)}
-          balance={referralData.balance}
-          currency={referralData.currency}
+          balance={balance}
+          currency="UZS"
         />
       )}
     </div>

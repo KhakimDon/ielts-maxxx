@@ -385,9 +385,9 @@ export async function createOrder(accessToken: string, currency: string = "uzs",
       currency: currency
     };
     
-    // Добавляем реферальный код, если он указан
+    // Добавляем промокод, если он указан
     if (referralCode && referralCode.trim()) {
-      requestBody.referral_code = referralCode.trim();
+      requestBody.promo_code = referralCode.trim();
     }
     
     const res = await fetch(buildApiUrl("/main/order/create/"), {
@@ -488,6 +488,185 @@ export async function withdrawFunds(accessToken: string, amount: number, currenc
     console.log("💰 Средства успешно выведены");
   } catch (err) {
     console.error("Ошибка вывода средств:", err);
+    throw err;
+  }
+}
+
+// Интерфейс для ответа количества заказов
+interface OrderCountResponse {
+  order_count: number;
+}
+
+// Функция для получения количества заказов
+export async function getOrderCount(): Promise<OrderCountResponse> {
+  try {
+    console.log("📊 Получаем количество заказов...");
+    
+    const res = await fetch(buildApiUrl("/main/order/OrderCount/"), {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Ошибка получения количества заказов:", errorText);
+      throw new Error("Ошибка получения количества заказов");
+    }
+
+    const responseData = await res.json();
+    console.log("📊 Количество заказов получено:", responseData);
+    
+    return responseData;
+  } catch (err) {
+    console.error("Ошибка получения количества заказов:", err);
+    throw err;
+  }
+}
+
+// Интерфейс для данных покупателя
+interface Buyer {
+  id: number;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  amount: number;
+  currency: string;
+  paid_at: string;
+}
+
+// Интерфейс для ответа промо-кода
+interface PromoCodeResponse {
+  promo_code: string;
+  usage_count: number;
+  totals_by_currency: Record<string, number>;
+  buyers: Buyer[];
+}
+
+// Функция для получения списка покупок по реферальной программе
+export async function getPromoCodePurchases(accessToken: string): Promise<PromoCodeResponse> {
+  try {
+    console.log("🔗 Получаем список покупок по реферальной программе...");
+    
+    const res = await fetch(buildApiUrl("/main/promo-code/"), {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Accept": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Ошибка получения списка покупок по реферальной программе:", errorText);
+      throw new Error("Ошибка получения списка покупок по реферальной программе");
+    }
+
+    const responseData = await res.json();
+    console.log("🔗 Список покупок по реферальной программе получен:", responseData);
+    
+    return responseData;
+  } catch (err) {
+    console.error("Ошибка получения списка покупок по реферальной программе:", err);
+    throw err;
+  }
+}
+
+// Интерфейс для конвертированного баланса
+interface ConvertedBalance {
+  currency: string;
+  amount: string;
+  rate: string;
+}
+
+// Интерфейс для ответа реферального баланса
+interface ReferralSummaryResponse {
+  code: string;
+  total_referrals: number;
+  balance_uzs: string;
+  converted_balance: ConvertedBalance;
+  payments: Array<{
+    id: number;
+    buyer: {
+      first_name: string;
+      last_name: string;
+    };
+    amount: string;
+    currency: string;
+    paid_at: string;
+    reward_amount: number;
+  }>;
+}
+
+// Функция для получения реферального баланса
+export async function getReferralSummary(accessToken: string, currency: string): Promise<ReferralSummaryResponse> {
+  try {
+    console.log(`💰 Получаем реферальный баланс в ${currency.toUpperCase()}...`);
+    
+    const res = await fetch(buildApiUrl(`/user/referral/summary/?currency=${currency}`), {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Accept": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`Ошибка получения реферального баланса в ${currency}:`, errorText);
+      throw new Error(`Ошибка получения реферального баланса в ${currency}`);
+    }
+
+    const responseData = await res.json();
+    console.log(`💰 Реферальный баланс в ${currency.toUpperCase()} получен:`, responseData);
+    
+    return responseData;
+  } catch (err) {
+    console.error(`Ошибка получения реферального баланса в ${currency}:`, err);
+    throw err;
+  }
+}
+
+// Интерфейс для ответа поиска реферального кода
+interface ReferralLookupResponse {
+  first_name: string;
+  last_name: string;
+}
+
+// Функция для поиска владельца реферального кода
+export async function lookupReferralCode(accessToken: string, promoCode: string): Promise<ReferralLookupResponse> {
+  try {
+    console.log(`🔍 Ищем владельца реферального кода: ${promoCode}...`);
+    
+    const res = await fetch(buildApiUrl("/user/referral/lookup/"), {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-CSRFTOKEN": env.CSRF_TOKEN,
+      },
+      body: JSON.stringify({
+        promo_code: promoCode
+      }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Ошибка поиска реферального кода:", errorText);
+      throw new Error("Ошибка поиска реферального кода");
+    }
+
+    const responseData = await res.json();
+    console.log(`🔍 Владелец реферального кода найден:`, responseData);
+    
+    return responseData;
+  } catch (err) {
+    console.error("Ошибка поиска реферального кода:", err);
     throw err;
   }
 }

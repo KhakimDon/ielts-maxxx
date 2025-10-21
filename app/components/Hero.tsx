@@ -1,7 +1,10 @@
 'use client';
 import { Button } from './ui/button';
+import { useOrderCount } from '../../hooks/useOrderCount';
 
 export default function Hero() {
+  const { displayCount } = useOrderCount();
+
   return (
     <section
       className="relative w-full h-screen bg-black bg-center bg-no-repeat pt-[120px]
@@ -11,6 +14,15 @@ export default function Hero() {
       }}
     >
       <div className="absolute z-10 text-left top-[15vw] left-[9vw]"></div>
+
+      {/* Счётчик */}
+      <div className="absolute z-10 top-[7vw] left-[5vw] sm:top-[12vw] sm:left-[10vw]">
+        <div className="bg-black relative leading-[40px] border-2 border-[#fca311] text-[#fca311] font-digital text-[40px] px-3 rounded-sm tracking-widest shadow-[0_0_10px_#fca311] inline-block w-[240px] text-center" style={{textShadow: '0 0 3px #fca311, 0 0 20px #fca311, 0 0 30px #fca311'}}>
+          <p>
+            {`${displayCount.toString().padStart(4, '0')}-3000`}
+          </p>
+        </div>
+      </div>
 
       <Button
         variant="ghost"

@@ -1,6 +1,7 @@
 'use client';
 
+import { clearAllUserData } from './clearUserData';
+
 export function logoutUser() {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
+  clearAllUserData();
 }

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { MenuIcon, UserIcon, XIcon } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useUserData } from "@/hooks/useUserData";
 import { confirmPhone } from "@/lib/api";
 
 import AuthModal from "./AuthModal";
@@ -15,7 +15,7 @@ import OTPModal from "./OTPModal";
 
 export default function Header() {
   const router = useRouter();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useUserData();
 
   // Отладочная информация
   console.log("🔍 Header Debug:", { isAuthenticated, user });
