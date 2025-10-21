@@ -5,12 +5,10 @@ import AuthModal from "./AuthModal";
 import PaymentModal from "./PaymentModal";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function AboutSection() {
   const { isAuthenticated } = useAuth();
-  const router = useRouter();
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProtectedRoute from "@/app/components/ProtectedRoute";
-import { getBookList, createOrder } from "@/lib/api";
+import { getBookList } from "@/lib/api";
 import PaymentModal from "@/app/components/PaymentModal";
 import AmbassadorSection from "@/app/components/AmbassadorSection";
 
@@ -21,7 +21,6 @@ export default function ProfilePage() {
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isBuying, setIsBuying] = useState(false);
   const [hasAttemptedPurchase, setHasAttemptedPurchase] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [referralCode, setReferralCode] = useState("");
@@ -153,14 +152,14 @@ export default function ProfilePage() {
                     <div className="flex flex-col sm:flex-row gap-3 items-end">
                       <button 
                         onClick={handleBuyBook}
-                        disabled={isBuying || !agreed}
+                        disabled={!agreed}
                         className={`cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-3 sm:px-4 py-3 sm:py-2 rounded-md text-xs sm:text-sm w-full sm:w-auto ${
-                          isBuying || !agreed
+                          !agreed
                             ? 'bg-gray-500 cursor-not-allowed opacity-50' 
                             : 'bg-[#fca311] hover:bg-[#E8850A]'
                         }`}
                       >
-                        {isBuying ? 'Создание заказа...' : 'Купить книгу'}
+                        Купить книгу
                       </button>
                       
                       {/* Инпут для реферального кода */}

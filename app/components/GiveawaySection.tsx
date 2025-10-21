@@ -1,6 +1,5 @@
 "use client";
 import Image from "next/image";
-import { shadow } from "pdfjs-dist";
 
 export default function GiveawaySection() {
   return (

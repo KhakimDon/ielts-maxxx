@@ -380,7 +380,7 @@ export async function createOrder(accessToken: string, currency: string = "uzs",
   try {
     console.log("🛒 Создаем заказ...", `Валюта: ${currency}`, referralCode ? `Реферальный код: ${referralCode}` : '');
     
-    const requestBody: any = {
+    const requestBody: Record<string, unknown> = {
       book: 5,
       currency: currency
     };
