@@ -115,7 +115,7 @@ export default function AmbassadorSection() {
         {/* Реферальная ссылка */}
         <div className="space-y-3">
           <label className="block text-[#F7971D] font-semibold text-sm sm:text-base">
-            ВАША РЕФЕРАЛЬНАЯ ССЫЛКА
+            ВАШ РЕФЕРАЛЬНЫЙ КОД
           </label>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
@@ -220,7 +220,7 @@ export default function AmbassadorSection() {
             ))
           ) : (
             <div className="p-6 sm:p-8 text-center text-gray-400 text-sm sm:text-base">
-              Пока нет покупок по вашей реферальной ссылке
+              Пока нет покупок по вашей реферальному коду
             </div>
           )}
         </div>

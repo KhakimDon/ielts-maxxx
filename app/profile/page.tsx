@@ -108,8 +108,8 @@ export default function ProfilePage() {
               className="scale-y-[1.2] scale-x-[1.2] sm:scale-y-[1.5] sm:scale-x-[1.5]"
               src="/bookd.png"
               alt="book"
-              width={120}
-              height={180}
+              width={170}
+              height={230}
             />
             <div className="flex-1 w-full">
               <div className="flex justify-between items-start sm:items-center mb-3 sm:mb-0">
@@ -145,41 +145,125 @@ export default function ProfilePage() {
                   </>
                 ) : (
                   <div className="w-full">
-                    <div className="flex flex-col sm:flex-row gap-3 items-end">
-                      <button 
-                        onClick={handleBuyBook}
-                        disabled={!agreed}
-                        className={`cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-3 sm:px-4 py-3 sm:py-2 rounded-md text-xs sm:text-sm w-full sm:w-auto ${
-                          !agreed
-                            ? 'bg-gray-500 cursor-not-allowed opacity-50' 
-                            : 'bg-[#fca311] hover:bg-[#E8850A]'
-                        }`}
-                      >
-                        Купить книгу
-                      </button>
-                      
+                    {/* Десктопная версия - все в одной строке */}
+                    <div className="hidden sm:flex flex-row gap-3 items-end">
                       {/* Инпут для реферального кода */}
-                      <div className="w-full sm:max-w-[250px] sm:flex-1 min-w-0">
+                      <div className="flex-1 min-w-0">
                         <div className="flex gap-2 items-center">
                           <input
                             type="text"
                             value={referralCode}
                             maxLength={8}
                             onChange={(e) => {
-                              setReferralCode(e.target.value);
-                              // Сбрасываем результат при изменении кода
-                              if (referralOwner || referralLookupError) {
-                                setReferralOwner(null);
-                                setReferralLookupError(null);
+                              const value = e.target.value;
+                              // Ограничиваем до 8 символов для всех устройств
+                              if (value.length <= 8) {
+                                setReferralCode(value);
+                                // Сбрасываем результат при изменении кода
+                                if (referralOwner || referralLookupError) {
+                                  setReferralOwner(null);
+                                  setReferralLookupError(null);
+                                }
                               }
                             }}
                             placeholder="Реферальный код"
-                            className="flex-1 px-3 py-3 sm:pt-[6px] sm:pb-[8px] border border-[#fca311] rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fca311]/50"
+                            className="flex-1 px-3 pb-2 pt-1.5 max-w-[150px] border border-[#fca311] rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fca311]/50"
                           />
                           <button
                             onClick={handleReferralLookup}
                             disabled={referralCode.length !== 8 || isLookingUpReferral}
-                            className={`px-3 py-3 sm:pt-[6px] sm:pb-[8px] rounded-md text-sm font-medium whitespace-nowrap ${
+                            className={`px-3 px-3 pb-2 pt-1.5 rounded-md text-sm font-medium whitespace-nowrap ${
+                              referralCode.length === 8 && !isLookingUpReferral
+                                ? 'bg-[#fca311] text-white hover:bg-[#E8850A]'
+                                : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                            }`}
+                          >
+                            {isLookingUpReferral ? '...' : 'Применить'}
+                          </button>
+                        </div>
+                        
+                        {/* Отображение результата поиска для десктопа */}
+                        <div className="overflow-hidden transition-all duration-300 ease-in-out">
+                          {referralOwner && (
+                            <div className="text-sm text-green-400 mt-2 animate-in slide-in-from-top-2 duration-300">
+                              Реферальный код: {referralOwner?.first_name} {referralOwner?.last_name}
+                            </div>
+                          )}
+                          
+                          {referralLookupError && (
+                            <div className="text-sm text-red-400 mt-2 animate-in slide-in-from-top-2 duration-300">
+                              {referralLookupError}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Условия соглашения и кнопка купить книгу в одной строке */}
+                      <div className="flex items-end gap-3">
+                        {/* Условия соглашения */}
+                        <div className="text-sm flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="agreement-profile-desktop"
+                            checked={agreed}
+                            onChange={() => setAgreed(!agreed)}
+                            className="accent-[#fca311] cursor-pointer"
+                          />
+                          <label htmlFor="agreement-profile-desktop" className="text-white cursor-pointer whitespace-nowrap">
+                            Принимаю{" "}
+                            <Link
+                              href="/agreement"
+                              target="_blank"
+                              className="underline text-[#fca311] hover:text-white transition-colors"
+                            >
+                              УСЛОВИЯ СОГЛАШЕНИЯ
+                            </Link>
+                          </label>
+                        </div>
+                        
+                        {/* Кнопка купить книгу */}
+                        <button 
+                          onClick={handleBuyBook}
+                          disabled={!agreed}
+                          className={`cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-4 py-2 rounded-md text-sm ${
+                            !agreed
+                              ? 'bg-gray-500 cursor-not-allowed opacity-50' 
+                              : 'bg-[#fca311] hover:bg-[#E8850A]'
+                          }`}
+                        >
+                          Купить книгу
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Мобильная версия - вертикально */}
+                    <div className="sm:hidden">
+                      {/* Инпут для реферального кода */}
+                      <div className="w-full">
+                        <div className="flex flex-col gap-2">
+                          <input
+                            type="text"
+                            value={referralCode}
+                            maxLength={8}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              // Ограничиваем до 8 символов для всех устройств
+                              if (value.length <= 8) {
+                                setReferralCode(value);
+                                // Сбрасываем результат при изменении кода
+                                if (referralOwner || referralLookupError) {
+                                  setReferralOwner(null);
+                                  setReferralLookupError(null);
+                                }
+                              }
+                            }}
+                            placeholder="Реферальный код"
+                            className="w-full px-3 py-3 border border-[#fca311] rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fca311]/50"
+                          />
+                          <button
+                            onClick={handleReferralLookup}
+                            disabled={referralCode.length !== 8 || isLookingUpReferral}
+                            className={`w-full px-3 py-3 rounded-md text-sm font-medium whitespace-nowrap ${
                               referralCode.length === 8 && !isLookingUpReferral
                                 ? 'bg-[#fca311] text-white hover:bg-[#E8850A]'
                                 : 'bg-gray-500 text-gray-300 cursor-not-allowed'
@@ -188,53 +272,67 @@ export default function ProfilePage() {
                             {isLookingUpReferral ? '...' : 'Применить'}
                           </button>
                           
-                          {/* Отображение результата поиска справа от кнопки */}
-                          {referralOwner && (
-                            <div className="text-sm text-green-400 whitespace-nowrap">
-                              Реферальная ссылка: {referralOwner?.first_name} {referralOwner?.last_name}
-                            </div>
-                          )}
-                          
-                          {referralLookupError && (
-                            <div className="text-sm text-red-400 whitespace-nowrap">
-                              {referralLookupError}
-                            </div>
-                          )}
+                          {/* Отображение результата поиска */}
+                          <div className="overflow-hidden transition-all duration-300 ease-in-out">
+                            {referralOwner && (
+                              <div className="text-sm text-green-400 animate-in slide-in-from-top-2 duration-300">
+                                Реферальный код: {referralOwner?.first_name} {referralOwner?.last_name}
+                              </div>
+                            )}
+                            
+                            {referralLookupError && (
+                              <div className="text-sm text-red-400 animate-in slide-in-from-top-2 duration-300">
+                                {referralLookupError}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
-                    </div>
-                    
-                    {/* Чекбокс для принятия условий соглашения */}
-                    <div className="mt-4 text-sm flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="agreement-profile"
-                        checked={agreed}
-                        onChange={() => setAgreed(!agreed)}
-                        className="accent-[#fca311] cursor-pointer"
-                      />
-                      <label htmlFor="agreement-profile" className="text-white cursor-pointer">
-                        Принимаю{" "}
-                        <Link
-                          href="/agreement"
-                          target="_blank"
-                          className="underline text-[#fca311] hover:text-white transition-colors"
-                        >
-                          УСЛОВИЯ СОГЛАШЕНИЯ
-                        </Link>
-                      </label>
+                      {/* Чекбокс для принятия условий соглашения */}
+                      <div className="mt-8 text-sm flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="agreement-profile-mobile"
+                          checked={agreed}
+                          onChange={() => setAgreed(!agreed)}
+                          className="accent-[#fca311] cursor-pointer"
+                        />
+                        <label htmlFor="agreement-profile-mobile" className="text-white cursor-pointer">
+                          Принимаю{" "}
+                          <Link
+                            href="/agreement"
+                            target="_blank"
+                            className="underline text-[#fca311] hover:text-white transition-colors"
+                          >
+                            УСЛОВИЯ СОГЛАШЕНИЯ
+                          </Link>
+                        </label>
+                      </div>
+
+                      {/* Кнопка купить книгу */}
+                      <button 
+                        onClick={handleBuyBook}
+                        disabled={!agreed}
+                        className={`mt-4 w-full cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-3 py-2 rounded-md text-[17] ${
+                          !agreed
+                            ? 'bg-gray-500 cursor-not-allowed opacity-50' 
+                            : 'bg-[#fca311] hover:bg-[#E8850A]'
+                        }`}
+                      >
+                        Купить книгу
+                      </button>
                     </div>
                   </div>
                 )}
               </div>
             </div>
             
-            {/* Кнопка обновления в правом нижнем углу */}
+            {/* Кнопка обновления - сверху на мобильных, снизу справа на десктопе */}
             {hasAttemptedPurchase && (
               <button 
                 onClick={handleRefresh}
-                className="absolute bottom-3 right-3 bg-[#2196F3] cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-2 py-1 rounded-md text-xs hover:bg-[#1976D2] flex items-center gap-1"
+                className="absolute top-3 right-3 sm:top-auto sm:bottom-3 bg-[#2196F3] cursor-pointer !font-[var(--font-atyp)] font-bold! tracking-wider text-white px-2 py-1 rounded-md text-xs hover:bg-[#1976D2] flex items-center gap-1"
                 title="Обновить страницу"
               >
                 <svg 
