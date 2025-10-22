@@ -5,6 +5,22 @@ import dynamic from "next/dynamic";
 import BookAccessRoute, { useBookContext } from "@/app/components/BookAccessRoute";
 import { getBookPdfFile } from "@/lib/api";
 
+// Интерфейсы для типизации Fullscreen API
+interface ElementWithWebkitFullscreen extends Element {
+  webkitRequestFullscreen?: () => Promise<void>;
+  mozRequestFullScreen?: () => Promise<void>;
+  msRequestFullscreen?: () => Promise<void>;
+}
+
+interface DocumentWithWebkitFullscreen extends Document {
+  webkitFullscreenElement?: Element | null;
+  mozFullScreenElement?: Element | null;
+  msFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => Promise<void>;
+  mozCancelFullScreen?: () => Promise<void>;
+  msExitFullscreen?: () => Promise<void>;
+}
+
 // Динамический импорт PDF компонентов для избежания SSR проблем
 const Document = dynamic(() => import("react-pdf").then((mod) => mod.Document), { 
   ssr: false,
@@ -147,7 +163,7 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
 
   const toggleFullscreen = useCallback(() => {
     if (!isFullscreen) {
-      const element = document.documentElement;
+      const element = document.documentElement as ElementWithWebkitFullscreen;
       
       // Проверяем, является ли устройство iOS
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -173,28 +189,28 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
         if (element.requestFullscreen) {
           element.requestFullscreen().then(() => {
             setIsFullscreen(true);
-          }).catch((err: any) => {
+          }).catch((err: Error) => {
             console.error('Ошибка входа в полноэкранный режим:', err);
           });
-        } else if ((element as any).webkitRequestFullscreen) {
+        } else if (element.webkitRequestFullscreen) {
           // Поддержка для WebKit браузеров
-          (element as any).webkitRequestFullscreen().then(() => {
+          element.webkitRequestFullscreen().then(() => {
             setIsFullscreen(true);
-          }).catch((err: any) => {
+          }).catch((err: Error) => {
             console.error('Ошибка входа в полноэкранный режим:', err);
           });
-        } else if ((element as any).mozRequestFullScreen) {
+        } else if (element.mozRequestFullScreen) {
           // Поддержка для Firefox
-          (element as any).mozRequestFullScreen().then(() => {
+          element.mozRequestFullScreen().then(() => {
             setIsFullscreen(true);
-          }).catch((err: any) => {
+          }).catch((err: Error) => {
             console.error('Ошибка входа в полноэкранный режим:', err);
           });
-        } else if ((element as any).msRequestFullscreen) {
+        } else if (element.msRequestFullscreen) {
           // Поддержка для IE/Edge
-          (element as any).msRequestFullscreen().then(() => {
+          element.msRequestFullscreen().then(() => {
             setIsFullscreen(true);
-          }).catch((err: any) => {
+          }).catch((err: Error) => {
             console.error('Ошибка входа в полноэкранный режим:', err);
           });
         }
@@ -202,6 +218,7 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
     } else {
       // Выход из полноэкранного режима
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const doc = document as DocumentWithWebkitFullscreen;
       
       if (isIOS) {
         // Для iOS восстанавливаем стили
@@ -217,25 +234,25 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
         if (document.exitFullscreen) {
           document.exitFullscreen().then(() => {
             setIsFullscreen(false);
-          }).catch((err: any) => {
+          }).catch((err: Error) => {
             console.error('Ошибка выхода из полноэкранного режима:', err);
           });
-        } else if ((document as any).webkitExitFullscreen) {
-          (document as any).webkitExitFullscreen().then(() => {
+        } else if (doc.webkitExitFullscreen) {
+          doc.webkitExitFullscreen().then(() => {
             setIsFullscreen(false);
-          }).catch((err: any) => {
+          }).catch((err: Error) => {
             console.error('Ошибка выхода из полноэкранного режима:', err);
           });
-        } else if ((document as any).mozCancelFullScreen) {
-          (document as any).mozCancelFullScreen().then(() => {
+        } else if (doc.mozCancelFullScreen) {
+          doc.mozCancelFullScreen().then(() => {
             setIsFullscreen(false);
-          }).catch((err: any) => {
+          }).catch((err: Error) => {
             console.error('Ошибка выхода из полноэкранного режима:', err);
           });
-        } else if ((document as any).msExitFullscreen) {
-          (document as any).msExitFullscreen().then(() => {
+        } else if (doc.msExitFullscreen) {
+          doc.msExitFullscreen().then(() => {
             setIsFullscreen(false);
-          }).catch((err: any) => {
+          }).catch((err: Error) => {
             console.error('Ошибка выхода из полноэкранного режима:', err);
           });
         }
@@ -253,10 +270,11 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
 
     const handleFullscreenChange = () => {
       // Проверяем различные варианты полноэкранного режима
+      const doc = document as DocumentWithWebkitFullscreen;
       const isFullscreenElement = document.fullscreenElement || 
-                                 (document as any).webkitFullscreenElement || 
-                                 (document as any).mozFullScreenElement || 
-                                 (document as any).msFullscreenElement;
+                                 doc.webkitFullscreenElement || 
+                                 doc.mozFullScreenElement || 
+                                 doc.msFullscreenElement;
       
       if (isFullscreenElement) {
         setIsFullscreen(true);
