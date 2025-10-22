@@ -42,8 +42,27 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, onError, refe
       
       console.log(`💳 Получен URL для оплаты в валюте ${currency}:`, orderData.url);
       
-      // Открываем URL в новой вкладке
-      window.open(orderData.url, '_blank');
+      // Открываем URL с поддержкой iOS Safari
+      const openPaymentUrl = (url: string) => {
+        // Проверяем, является ли устройство iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        
+        if (isIOS) {
+          // Для iOS используем location.href
+          window.location.href = url;
+        } else {
+          // Для других браузеров используем window.open
+          const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+          
+          // Если window.open заблокирован, используем location.href как fallback
+          if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            console.log('🔄 window.open заблокирован, используем location.href');
+            window.location.href = url;
+          }
+        }
+      };
+      
+      openPaymentUrl(orderData.url);
       
       onSuccess?.();
       onClose();
