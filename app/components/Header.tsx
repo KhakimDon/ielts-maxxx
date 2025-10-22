@@ -26,6 +26,9 @@ export default function Header() {
   const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
   const [otpPhone, setOtpPhone] = useState("");
 
+  // Отладка OTP Modal состояния
+  console.log("🔍 Header: Рендер OTP Modal - isOTPModalOpen:", isOTPModalOpen, "otpPhone:", otpPhone);
+
   const navLinkClass =
     "text-neutral-400 font-[600] !font-[var(--font-atyp)] hover:text-[#fca311] transition-colors";
 
@@ -259,7 +262,6 @@ export default function Header() {
       )}
 
       {/* OTP Модалка */}
-      {console.log("🔍 Header: Рендер OTP Modal - isOTPModalOpen:", isOTPModalOpen, "otpPhone:", otpPhone)}
       <OTPModal
         isOpen={isOTPModalOpen}
         onClose={handleOTPClose}
