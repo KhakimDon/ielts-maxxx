@@ -50,6 +50,7 @@ export default function ProfilePage() {
   const handleJoinChannel = () => {
     // Пока что ничего не происходит
     console.log("Зайти на канал - функционал в разработке");
+    window.location.href = "https://t.me/ielts_fucker";
   };
 
   const handleRefresh = () => {

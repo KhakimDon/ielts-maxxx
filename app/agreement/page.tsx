@@ -96,7 +96,6 @@ export default function AgreementPage() {
               <p><strong>Telegram:</strong> 
                 <a 
                   href="https://t.me/mr_doniyormanager" 
-                  target="_blank" 
                   rel="noopener noreferrer"
                   className="text-[#fca311] hover:text-white transition-colors cursor-pointer ml-2"
                 >
@@ -106,7 +105,6 @@ export default function AgreementPage() {
               <p><strong>Instagram:</strong> 
                 <a 
                   href="https://www.instagram.com/mr.doniyorbotirov" 
-                  target="_blank" 
                   rel="noopener noreferrer"
                   className="text-[#fca311] hover:text-white transition-colors cursor-pointer ml-2"
                 >

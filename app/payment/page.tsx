@@ -193,8 +193,7 @@ export default function PaymentPage() {
               </p>
               <p><strong>Telegram:</strong> 
                 <a 
-                  href="https://t.me/mr_doniyormanager" 
-                  target="_blank" 
+                  href="https://t.me/mr_doniyormanager"  
                   rel="noopener noreferrer"
                   className="text-[#fca311] hover:text-white transition-colors cursor-pointer ml-2"
                 >

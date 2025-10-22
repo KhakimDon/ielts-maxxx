@@ -106,7 +106,7 @@ export default function Footer() {
 
         {/* Соцсети */}
         <div className="flex mt-3 sm:flex-col gap-4 sm:items-end items-center">
-          <Link href="https://t.me/mr_doniyormanager" target="_blank" rel="noopener noreferrer">
+          <Link href="https://t.me/mr_doniyormanager" rel="noopener noreferrer">
             <div className="bg-[#fca311] w-10 h-10 rounded-md flex items-center justify-center">
               <Image
                 src="/icons8-telegram-50.png"
