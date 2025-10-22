@@ -27,8 +27,11 @@ export default function Hero() {
       <Button
         variant="ghost"
         className="absolute !font-[var(--font-atyp)] font-bold! tracking-[1px] bottom-30 left-1/2 -translate-x-1/2 bg-[#fca311] text-white text-sm sm:text-lg font-bold px-8 sm:px-10 py-4 sm:py-7 rounded-md shadow-[0_0_10px_#fca311] cursor-pointer hover:bg-[#fca311] transition"
+        onClick={() => {
+          document.getElementById('buybook')?.scrollIntoView({ behavior: 'smooth' });
+        }}
       >
-        <a href="#buybook">КУПИТЬ</a>
+        КУПИТЬ
       </Button>
     </section>
   );
