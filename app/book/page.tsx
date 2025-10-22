@@ -69,7 +69,7 @@ function BookContent() {
       <div className="w-full min-h-[800px] bg-black h-full flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#fca311] mx-auto mb-4"></div>
-          <p className="text-gray-400">Загрузка PDF из API...</p>
+          <p className="text-gray-400">Загрузка Книги...</p>
         </div>
       </div>
     );
@@ -148,20 +148,97 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
   const toggleFullscreen = useCallback(() => {
     if (!isFullscreen) {
       const element = document.documentElement;
-      if (element.requestFullscreen) {
-        element.requestFullscreen().then(() => {
-          setIsFullscreen(true);
-        }).catch((err) => {
-          console.error('Ошибка входа в полноэкранный режим:', err);
-        });
+      
+      // Проверяем, является ли устройство iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      
+      if (isIOS) {
+        // Для iOS используем альтернативный подход
+        setIsFullscreen(true);
+        
+        // Добавляем класс для скрытия адресной строки
+        document.body.style.position = 'fixed';
+        document.body.style.top = '0';
+        document.body.style.left = '0';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+        document.body.style.overflow = 'hidden';
+        
+        // Скрываем адресную строку на iOS
+        if (window.scrollTo) {
+          window.scrollTo(0, 1);
+        }
+      } else {
+        // Для других браузеров используем стандартный Fullscreen API
+        if (element.requestFullscreen) {
+          element.requestFullscreen().then(() => {
+            setIsFullscreen(true);
+          }).catch((err: any) => {
+            console.error('Ошибка входа в полноэкранный режим:', err);
+          });
+        } else if ((element as any).webkitRequestFullscreen) {
+          // Поддержка для WebKit браузеров
+          (element as any).webkitRequestFullscreen().then(() => {
+            setIsFullscreen(true);
+          }).catch((err: any) => {
+            console.error('Ошибка входа в полноэкранный режим:', err);
+          });
+        } else if ((element as any).mozRequestFullScreen) {
+          // Поддержка для Firefox
+          (element as any).mozRequestFullScreen().then(() => {
+            setIsFullscreen(true);
+          }).catch((err: any) => {
+            console.error('Ошибка входа в полноэкранный режим:', err);
+          });
+        } else if ((element as any).msRequestFullscreen) {
+          // Поддержка для IE/Edge
+          (element as any).msRequestFullscreen().then(() => {
+            setIsFullscreen(true);
+          }).catch((err: any) => {
+            console.error('Ошибка входа в полноэкранный режим:', err);
+          });
+        }
       }
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().then(() => {
-          setIsFullscreen(false);
-        }).catch((err) => {
-          console.error('Ошибка выхода из полноэкранного режима:', err);
-        });
+      // Выход из полноэкранного режима
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      
+      if (isIOS) {
+        // Для iOS восстанавливаем стили
+        setIsFullscreen(false);
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+        document.body.style.overflow = '';
+      } else {
+        // Для других браузеров используем стандартный API
+        if (document.exitFullscreen) {
+          document.exitFullscreen().then(() => {
+            setIsFullscreen(false);
+          }).catch((err: any) => {
+            console.error('Ошибка выхода из полноэкранного режима:', err);
+          });
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen().then(() => {
+            setIsFullscreen(false);
+          }).catch((err: any) => {
+            console.error('Ошибка выхода из полноэкранного режима:', err);
+          });
+        } else if ((document as any).mozCancelFullScreen) {
+          (document as any).mozCancelFullScreen().then(() => {
+            setIsFullscreen(false);
+          }).catch((err: any) => {
+            console.error('Ошибка выхода из полноэкранного режима:', err);
+          });
+        } else if ((document as any).msExitFullscreen) {
+          (document as any).msExitFullscreen().then(() => {
+            setIsFullscreen(false);
+          }).catch((err: any) => {
+            console.error('Ошибка выхода из полноэкранного режима:', err);
+          });
+        }
       }
     }
   }, [isFullscreen]);
@@ -175,22 +252,78 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
     };
 
     const handleFullscreenChange = () => {
-      if (document.fullscreenElement) {
+      // Проверяем различные варианты полноэкранного режима
+      const isFullscreenElement = document.fullscreenElement || 
+                                 (document as any).webkitFullscreenElement || 
+                                 (document as any).mozFullScreenElement || 
+                                 (document as any).msFullscreenElement;
+      
+      if (isFullscreenElement) {
         setIsFullscreen(true);
       } else {
         setIsFullscreen(false);
       }
     };
 
+    // Обработчик для iOS - выход из полноэкранного режима при изменении ориентации
+    const handleOrientationChange = () => {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS && isFullscreen) {
+        // Небольшая задержка для стабильности
+        setTimeout(() => {
+          if (window.orientation !== undefined) {
+            // Если ориентация изменилась, остаемся в полноэкранном режиме
+            // но обновляем размеры
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            console.log('iOS ориентация изменилась:', width, 'x', height);
+          }
+        }, 100);
+      }
+    };
+
+    // Обработчик для iOS - выход при скролле вниз (показ адресной строки)
+    const handleScroll = () => {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS && isFullscreen && window.scrollY > 0) {
+        // Если пользователь скроллит вниз на iOS, выходим из полноэкранного режима
+        setIsFullscreen(false);
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+        document.body.style.overflow = '';
+      }
+    };
+
     if (isFullscreen) {
       document.addEventListener('keydown', handleKeyDown);
+      
+      // Добавляем обработчики для iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        window.addEventListener('orientationchange', handleOrientationChange);
+        window.addEventListener('scroll', handleScroll);
+      }
     }
     
+    // Добавляем обработчики для всех браузеров
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+      
+      // Удаляем обработчики для iOS
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [isFullscreen, toggleFullscreen]);
 
@@ -320,7 +453,30 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
   console.log("Render state:", { isPdfReady, isLoading, error, currentPage, numPages });
 
   return (
-    <div className={isFullscreen ? "fixed inset-0 bg-black z-50" : ""}>
+    <>
+      {/* Мета-теги для iOS полноэкранного режима */}
+      {isFullscreen && (
+        <>
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        </>
+      )}
+      <div 
+        className={isFullscreen ? "fixed inset-0 bg-black z-50" : ""}
+        style={isFullscreen ? {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          backgroundColor: 'black',
+          // Дополнительные стили для iOS
+          WebkitOverflowScrolling: 'touch',
+          overflow: 'hidden'
+        } : {}}
+      >
         {!isFullscreen && (
           <div className="text-center bg-black pb-2 pt-15">
             <h1 className="text-4xl font-bold text-[#fca311] mb-4">IELTS MAXXX 1.0</h1>
@@ -335,8 +491,8 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
                ? 'h-[92vh] w-full bg-black' 
                : 'h-[92vh] w-full bg-black'
              : isSmallMobile 
-               ? 'p-4 pt-8 pb-20 bg-black min-h-[900px]' 
-               : 'p-4 pt-8 bg-black min-h-[900px]'
+               ? 'pt-8 pb-20 bg-black ' 
+               : 'pt-8 bg-black '
          }`}
          onTouchStart={handleTouchStart}
          onTouchMove={handleTouchMove}
@@ -347,10 +503,24 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
              ? 'w-full' 
              : 'max-w-[585px] xl:max-w-[1170px]'
          }`} style={{ 
-           height: isFullscreen ? (isSmallMobile ? 'auto' : '100%') : '826px', // Фиксированная высота
+           height: isFullscreen ? (isSmallMobile ? 'auto' : '100%') : (isSmallMobile ? 'auto' : '826px'), // Автоматическая высота для мобильных
            width: isSmallMobile ? '100%' : undefined,
-           maxHeight: isFullscreen && isSmallMobile ? '90vh' : undefined,
-           minHeight: isFullscreen ? undefined : '826px' // Минимальная высота
+           maxHeight: isFullscreen && isSmallMobile ? '90vh' : (isSmallMobile ? '90vh' : undefined),
+           minHeight: isFullscreen ? undefined : (isSmallMobile ? 'auto' : '826px'), // Автоматическая минимальная высота для мобильных
+           // Дополнительные стили для мобильных устройств
+           ...(isSmallMobile ? {
+             display: 'flex',
+             flexDirection: 'column',
+             alignItems: 'center',
+             justifyContent: 'flex-start'
+           } : {}),
+           // Дополнительные стили для iOS полноэкранного режима
+           ...(isFullscreen && /iPad|iPhone|iPod/.test(navigator.userAgent) ? {
+             position: 'relative',
+             zIndex: 1,
+             WebkitTransform: 'translateZ(0)',
+             transform: 'translateZ(0)'
+           } : {})
          }}>
            {error ? (
              <div className="w-full h-full flex items-center justify-center" style={{ minHeight: '826px' }}>
@@ -385,21 +555,22 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
                className="w-full h-full"
                loading={
                  <div className={`flex flex-col items-center justify-center text-black ${
-                   isSmallMobile ? '!min-h-[400px]' : ' !min-h-[800px]'
+                   isSmallMobile ? '!min-h-[400px]' : ' !min-h-[500px]'
                  }`}>
                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#fca311] mb-2"></div>
-                   <p>Загрузка PDF...</p>
+                   <p>Загрузка Книги...</p>
                  </div>
                }
              >
-               <div className="flex w-full h-full">
+               <div className={`flex w-full ${isSmallMobile ? 'h-auto flex-col' : 'h-full'}`}>
                  {/* Левая страница - показывается всегда */}
-                 <div className="w-full xl:w-1/2 h-full bg-white xl:border-r border-gray-600 flex items-center justify-center overflow-hidden">
+                 <div className={`w-full xl:w-1/2 ${isSmallMobile ? 'h-auto' : 'h-full'} bg-white xl:border-r border-gray-600 flex items-center justify-center ${isSmallMobile ? 'overflow-visible' : 'overflow-hidden'}`}>
                    {isPageLoaded(currentPage) ? (
                      <Page
                        pageNumber={currentPage}
                        width={isSmallMobile ? mobileViewportWidth : 585}
-                       className={`transition-all duration-300 ${isPageTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}
+                       height={isSmallMobile ? undefined : 826}
+                       className={`transition-all duration-300 ${isPageTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'} ${isSmallMobile ? 'max-w-full h-auto' : ''}`}
                        renderTextLayer={false}
                        renderAnnotationLayer={false}
                      />
@@ -407,7 +578,8 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
                      <Page
                        pageNumber={currentPage}
                        width={isSmallMobile ? mobileViewportWidth : 585}
-                       className={`transition-all duration-300 ${isPageTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}
+                       height={isSmallMobile ? undefined : 826}
+                       className={`transition-all duration-300 ${isPageTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'} ${isSmallMobile ? 'max-w-full h-auto' : ''}`}
                        onLoadSuccess={() => onPageLoadSuccess(currentPage)}
                        renderTextLayer={false}
                        renderAnnotationLayer={false}
@@ -430,7 +602,8 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
                        <Page
                          pageNumber={currentPage + 1}
                          width={isSmallMobile ? mobileViewportWidth : 585}
-                         className={`transition-all duration-300 ${isPageTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}
+                         height={isSmallMobile ? undefined : 826}
+                         className={`transition-all duration-300 ${isPageTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'} ${isSmallMobile ? 'max-w-full h-auto' : ''}`}
                          renderTextLayer={false}
                          renderAnnotationLayer={false}
                        />
@@ -438,7 +611,8 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
                        <Page
                          pageNumber={currentPage + 1}
                          width={isSmallMobile ? mobileViewportWidth : 585}
-                         className={`transition-all duration-300 ${isPageTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}
+                         height={isSmallMobile ? undefined : 826}
+                         className={`transition-all duration-300 ${isPageTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'} ${isSmallMobile ? 'max-w-full h-auto' : ''}`}
                          onLoadSuccess={() => onPageLoadSuccess(currentPage + 1)}
                          renderTextLayer={false}
                          renderAnnotationLayer={false}
@@ -601,6 +775,7 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
        </div>
        )}
       </div>
+    </>
     );
   }
 
