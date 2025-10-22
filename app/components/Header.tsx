@@ -62,9 +62,15 @@ export default function Header() {
 
   // Функция для открытия OTP модалки (будет вызвана из RegisterModal)
   const openOTPModal = (phone: string) => {
+    console.log("🔍 Header: openOTPModal вызван с номером:", phone);
     setOtpPhone(phone);
     setIsOTPModalOpen(true);
-    console.log("🔍 OTP Modal открывается из Header с номером:", phone);
+    console.log("🔍 Header: OTP Modal состояние установлено в true");
+    
+    // Дополнительная проверка через setTimeout
+    setTimeout(() => {
+      console.log("🔍 Header: Проверка состояния OTP Modal через 100ms:", isOTPModalOpen);
+    }, 100);
   };
 
   return (
@@ -253,6 +259,7 @@ export default function Header() {
       )}
 
       {/* OTP Модалка */}
+      {console.log("🔍 Header: Рендер OTP Modal - isOTPModalOpen:", isOTPModalOpen, "otpPhone:", otpPhone)}
       <OTPModal
         isOpen={isOTPModalOpen}
         onClose={handleOTPClose}
