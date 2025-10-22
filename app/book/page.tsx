@@ -170,6 +170,7 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
       
       if (isIOS) {
         // Для iOS используем альтернативный подход
+        // Сначала обновляем состояние для немедленного перехода
         setIsFullscreen(true);
         
         // Добавляем класс для скрытия адресной строки
@@ -184,6 +185,21 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
         if (window.scrollTo) {
           window.scrollTo(0, 1);
         }
+        
+        // Дополнительная задержка для стабильности на iOS
+        setTimeout(() => {
+          // Принудительно обновляем состояние
+          setIsFullscreen(true);
+          
+          // Принудительно обновляем DOM для iOS
+          const event = new Event('resize');
+          window.dispatchEvent(event);
+          
+          // Дополнительная проверка через небольшую задержку
+          setTimeout(() => {
+            setIsFullscreen(true);
+          }, 50);
+        }, 100);
       } else {
         // Для других браузеров используем стандартный Fullscreen API
         if (element.requestFullscreen) {
@@ -229,6 +245,15 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
         document.body.style.width = '';
         document.body.style.height = '';
         document.body.style.overflow = '';
+        
+        // Принудительно обновляем DOM для iOS
+        const event = new Event('resize');
+        window.dispatchEvent(event);
+        
+        // Дополнительная проверка через небольшую задержку
+        setTimeout(() => {
+          setIsFullscreen(false);
+        }, 50);
       } else {
         // Для других браузеров используем стандартный API
         if (document.exitFullscreen) {
@@ -492,7 +517,21 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
           backgroundColor: 'black',
           // Дополнительные стили для iOS
           WebkitOverflowScrolling: 'touch',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          // Специальные стили для iOS полноэкранного режима
+          ...(/iPad|iPhone|iPod/.test(navigator.userAgent) ? {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+            backgroundColor: 'black',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            WebkitOverflowScrolling: 'touch',
+            overflow: 'hidden'
+          } : {})
         } : {}}
       >
         {!isFullscreen && (
@@ -658,12 +697,45 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
        
        {/* Кнопки навигации для полноэкранного режима */}
        {isFullscreen && (
-         <div className="h-[10vh] bg-black flex items-center justify-center gap-4">
+         <div 
+           className="h-[10vh] bg-black flex items-center justify-center gap-4"
+           style={{
+             position: 'fixed',
+             bottom: 0,
+             left: 0,
+             right: 0,
+             zIndex: 10000,
+             backgroundColor: 'black',
+             // Дополнительные стили для iOS
+             WebkitTransform: 'translateZ(0)',
+             transform: 'translateZ(0)',
+             // Убеждаемся, что кнопки видны на iOS
+             ...(/iPad|iPhone|iPod/.test(navigator.userAgent) ? {
+               position: 'fixed',
+               bottom: 0,
+               left: 0,
+               right: 0,
+               zIndex: 10000,
+               backgroundColor: 'rgba(0, 0, 0, 0.9)',
+               backdropFilter: 'blur(10px)',
+               WebkitBackdropFilter: 'blur(10px)'
+             } : {})
+           }}
+         >
            {/* Кнопка назад */}
            <button 
              onClick={goToPrevPage}
              disabled={currentPage <= 1 || isPageTransitioning}
              className="px-[18px] cursor-pointer h-[51px] bg-[#F7971D] text-black rounded-lg flex items-center justify-center hover:bg-[#E8850A] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+             style={{
+               // Дополнительные стили для iOS
+               ...(/iPad|iPhone|iPod/.test(navigator.userAgent) ? {
+                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                 border: '2px solid rgba(255, 255, 255, 0.2)',
+                 WebkitTransform: 'translateZ(0)',
+                 transform: 'translateZ(0)'
+               } : {})
+             }}
            >
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
@@ -671,7 +743,18 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
            </button>
 
            {/* Индикатор страниц */}
-           <button className="px-[18px] font-medium h-[51px] bg-[#F7971D] text-black rounded-lg flex items-center justify-center hover:bg-[#E8850A] transition-colors">
+           <button 
+             className="px-[18px] font-medium h-[51px] bg-[#F7971D] text-black rounded-lg flex items-center justify-center hover:bg-[#E8850A] transition-colors"
+             style={{
+               // Дополнительные стили для iOS
+               ...(/iPad|iPhone|iPod/.test(navigator.userAgent) ? {
+                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                 border: '2px solid rgba(255, 255, 255, 0.2)',
+                 WebkitTransform: 'translateZ(0)',
+                 transform: 'translateZ(0)'
+               } : {})
+             }}
+           >
              {isMobile 
                ? `${currentPage}/${numPages} ${isPageLoaded(currentPage) ? '✓' : '⏳'}`
                : `${currentPage}-${Math.min(currentPage + 1, numPages)}/${numPages} ${isPageLoaded(currentPage) && isPageLoaded(currentPage + 1) ? '✓' : '⏳'}`
@@ -683,6 +766,15 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
              onClick={goToNextPage}
              disabled={currentPage >= numPages || isPageTransitioning}
              className="px-[18px] cursor-pointer h-[51px] bg-[#F7971D] text-black rounded-lg flex items-center justify-center hover:bg-[#E8850A] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+             style={{
+               // Дополнительные стили для iOS
+               ...(/iPad|iPhone|iPod/.test(navigator.userAgent) ? {
+                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                 border: '2px solid rgba(255, 255, 255, 0.2)',
+                 WebkitTransform: 'translateZ(0)',
+                 transform: 'translateZ(0)'
+               } : {})
+             }}
            >
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
@@ -693,6 +785,15 @@ function BookViewer({ pdfFile }: { pdfFile: string }) {
            <button 
              onClick={toggleFullscreen}
              className="px-[18px] cursor-pointer h-[51px] bg-[#F7971D] text-black rounded-lg flex items-center justify-center hover:bg-[#E8850A] transition-colors"
+             style={{
+               // Дополнительные стили для iOS
+               ...(/iPad|iPhone|iPod/.test(navigator.userAgent) ? {
+                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                 border: '2px solid rgba(255, 255, 255, 0.2)',
+                 WebkitTransform: 'translateZ(0)',
+                 transform: 'translateZ(0)'
+               } : {})
+             }}
            >
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25" />
