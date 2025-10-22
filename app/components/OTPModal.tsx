@@ -109,7 +109,7 @@ export default function OTPModal({ isOpen, onClose, onVerify, phone }: OTPModalP
           <p className="text-gray-600">
             Введите код из SMS, отправленный на номер
           </p>
-          <p className="text-gray-900 font-medium">+998 {phone}</p>
+          <p className="text-gray-900 font-medium">+{phone}</p>
         </div>
 
         <div className="flex justify-center gap-3 mb-6">
