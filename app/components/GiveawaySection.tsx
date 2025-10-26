@@ -9,8 +9,7 @@ export default function GiveawaySection() {
     <section id="promo" className="relative bg-black text-white py-20 px-4 sm:px-10 overflow-hidden">
       <h2 className="text-[#fca311] !font-[var(--font-atyp)] text-3xl sm:text-4xl !font-extrabold uppercase leading-tight text-center mb-16">
         3000 продаж — <br className="sm:hidden" />
-        1 легендарный
-        <br /> гелик для победителя!
+        1 ЛЕГЕНДАРНЫЙ ГЕЛИК
       </h2>
 
       <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-start">
@@ -21,10 +20,11 @@ export default function GiveawaySection() {
             </p>
             <div className="flex flex-col items-start space-y-3">
               {[
-                "После достижения 3000 продаж мы выберем победителя",
-                "Победитель определяется полностью случайным образом (рандомайзер)",
-                "Каждая покупка книги или успешная реферальная продажа — это дополнительный шанс выиграть!",
-                "Количество покупок и рефералов не ограничено — чем активнее вы участвуете, тем выше ваши шансы на Гелик!",
+                "После достижения 3000 продаж мы выбираем победителя.",
+                "Победитель определяется случайным образом (честный рандомайзер).",
+                "Каждая покупка книги или реферальная продажа = ещё один шанс выиграть.",
+                "Количество шансов не ограничено — чем активнее ты, тем ближе Гелик.",
+                "Ты либо наблюдаешь, как другие едут,либо едешь сам.",
               ].map((text, i) => (
                 <div
                   key={i}

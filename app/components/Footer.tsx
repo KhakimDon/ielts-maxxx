@@ -55,10 +55,10 @@ export default function Footer() {
               <p className="text-white">
                 <span className="text-[#fca311]">Почта:</span> 
                 <a 
-                  href="mailto:botirov.d@yahoo.com" 
+                  href="mailto:info@mrdoniyor.com" 
                   className="ml-1 text-[#fca311] hover:text-white transition-colors cursor-pointer"
                 >
-                  botirov.d@yahoo.com
+                  info@mrdoniyor.com
                 </a>
               </p>
             </div>
