@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useReferralBalance } from "@/hooks/useReferralBalance";
 import { useReferralPurchases } from "@/hooks/useReferralPurchases";
 import WithdrawModal from "./WithdrawModal";
@@ -15,21 +15,28 @@ export default function AmbassadorSection() {
   // Показываем промокод пользователя
   const referralCode = referralData?.code || "";
 
+  // Формируем полную реферальную ссылку для отображения
+  const referralLink = useMemo(() => {
+    if (!referralCode) return "";
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${baseUrl}/referal/${referralCode}`;
+  }, [referralCode]);
+
   // Используем баланс из API
   const balance = referralData?.balance.uzs || 0;
   const usdBalance = referralData?.balance.usd || 0;
 
   const copyReferralLink = async () => {
-    if (!referralCode) return;
+    if (!referralLink) return;
     
     try {
       // Пробуем современный API
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(referralCode);
+        await navigator.clipboard.writeText(referralLink);
       } else {
         // Fallback для старых браузеров и мобильных устройств
         const textArea = document.createElement('textarea');
-        textArea.value = referralCode;
+        textArea.value = referralLink;
         textArea.style.position = 'fixed';
         textArea.style.left = '-999999px';
         textArea.style.top = '-999999px';
@@ -42,7 +49,7 @@ export default function AmbassadorSection() {
         } catch (err) {
           console.error('Fallback copy failed:', err);
           // Показываем текст для ручного копирования
-          alert(`Скопируйте промокод вручную:\n${referralCode}`);
+          alert(`Скопируйте ссылку вручную:\n${referralLink}`);
           return;
         }
         
@@ -54,7 +61,7 @@ export default function AmbassadorSection() {
     } catch (err) {
       console.error("Ошибка при копировании:", err);
       // Показываем текст для ручного копирования
-      alert(`Скопируйте промокод вручную:\n${referralCode}`);
+      alert(`Скопируйте ссылку вручную:\n${referralLink}`);
     }
   };
 
@@ -120,7 +127,7 @@ export default function AmbassadorSection() {
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
-              value={referralCode}
+              value={referralLink}
               readOnly
               className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-[#F7971D] rounded-xl text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#F7971D]/50"
             />

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProtectedRoute from "@/app/components/ProtectedRoute";
 import { useBookData } from "@/hooks/useBookData";
-import { lookupReferralCode } from "@/lib/api";
 import PaymentModal from "@/app/components/PaymentModal";
 import AmbassadorSection from "@/app/components/AmbassadorSection";
 
@@ -16,11 +15,7 @@ export default function ProfilePage() {
   const { bookData, isLoading, error, refreshBookData } = useBookData();
   const [hasAttemptedPurchase, setHasAttemptedPurchase] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [referralCode, setReferralCode] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [referralOwner, setReferralOwner] = useState<{first_name: string, last_name: string} | null>(null);
-  const [isLookingUpReferral, setIsLookingUpReferral] = useState(false);
-  const [referralLookupError, setReferralLookupError] = useState<string | null>(null);
 
   // Получаем первую книгу (у нас всего одна)
   const currentBook = bookData && bookData.length > 0 ? bookData[0] : null;
@@ -56,29 +51,6 @@ export default function ProfilePage() {
   const handleRefresh = () => {
     // Обновляем данные книг
     refreshBookData();
-  };
-
-  const handleReferralLookup = async () => {
-    if (referralCode.length !== 8) return;
-    
-    try {
-      setIsLookingUpReferral(true);
-      setReferralLookupError(null);
-      
-      const accessToken = localStorage.getItem("access_token");
-      if (!accessToken) {
-        throw new Error("Нет токена доступа");
-      }
-      
-      const response = await lookupReferralCode(accessToken, referralCode);
-      setReferralOwner(response);
-    } catch (err) {
-      console.error("Ошибка поиска реферального кода:", err);
-      setReferralLookupError("Код не найден или ошибка поиска");
-      setReferralOwner(null);
-    } finally {
-      setIsLookingUpReferral(false);
-    }
   };
 
   return (
@@ -148,57 +120,6 @@ export default function ProfilePage() {
                   <div className="w-full">
                     {/* Десктопная версия - все в одной строке */}
                     <div className="hidden sm:flex flex-row gap-3 items-end">
-                      {/* Инпут для реферального кода */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex gap-2 items-center">
-                          <input
-                            type="text"
-                            value={referralCode}
-                            maxLength={8}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              // Ограничиваем до 8 символов для всех устройств
-                              if (value.length <= 8) {
-                                setReferralCode(value);
-                                // Сбрасываем результат при изменении кода
-                                if (referralOwner || referralLookupError) {
-                                  setReferralOwner(null);
-                                  setReferralLookupError(null);
-                                }
-                              }
-                            }}
-                            placeholder="Реферальный код"
-                            className="flex-1 px-3 pb-2 pt-1.5 max-w-[150px] border border-[#fca311] rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fca311]/50"
-                          />
-                          <button
-                            onClick={handleReferralLookup}
-                            disabled={referralCode.length !== 8 || isLookingUpReferral}
-                            className={`px-3 px-3 pb-2 pt-1.5 rounded-md text-sm font-medium whitespace-nowrap ${
-                              referralCode.length === 8 && !isLookingUpReferral
-                                ? 'bg-[#fca311] text-white hover:bg-[#E8850A]'
-                                : 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                            }`}
-                          >
-                            {isLookingUpReferral ? '...' : 'Применить'}
-                          </button>
-                        </div>
-                        
-                        {/* Отображение результата поиска для десктопа */}
-                        <div className="overflow-hidden transition-all duration-300 ease-in-out">
-                          {referralOwner && (
-                            <div className="text-sm text-green-400 mt-2 animate-in slide-in-from-top-2 duration-300">
-                              Реферальный код: {referralOwner?.first_name} {referralOwner?.last_name}
-                            </div>
-                          )}
-                          
-                          {referralLookupError && (
-                            <div className="text-sm text-red-400 mt-2 animate-in slide-in-from-top-2 duration-300">
-                              {referralLookupError}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
                       {/* Условия соглашения и кнопка купить книгу в одной строке */}
                       <div className="flex items-end gap-3">
                         {/* Условия соглашения */}
@@ -239,59 +160,8 @@ export default function ProfilePage() {
 
                     {/* Мобильная версия - вертикально */}
                     <div className="sm:hidden">
-                      {/* Инпут для реферального кода */}
-                      <div className="w-full">
-                        <div className="flex flex-col gap-2">
-                          <input
-                            type="text"
-                            value={referralCode}
-                            maxLength={8}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              // Ограничиваем до 8 символов для всех устройств
-                              if (value.length <= 8) {
-                                setReferralCode(value);
-                                // Сбрасываем результат при изменении кода
-                                if (referralOwner || referralLookupError) {
-                                  setReferralOwner(null);
-                                  setReferralLookupError(null);
-                                }
-                              }
-                            }}
-                            placeholder="Реферальный код"
-                            className="w-full px-3 py-3 border border-[#fca311] rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fca311]/50"
-                          />
-                          <button
-                            onClick={handleReferralLookup}
-                            disabled={referralCode.length !== 8 || isLookingUpReferral}
-                            className={`w-full px-3 py-3 rounded-md text-sm font-medium whitespace-nowrap ${
-                              referralCode.length === 8 && !isLookingUpReferral
-                                ? 'bg-[#fca311] text-white hover:bg-[#E8850A]'
-                                : 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                            }`}
-                          >
-                            {isLookingUpReferral ? '...' : 'Применить'}
-                          </button>
-                          
-                          {/* Отображение результата поиска */}
-                          <div className="overflow-hidden transition-all duration-300 ease-in-out">
-                            {referralOwner && (
-                              <div className="text-sm text-green-400 animate-in slide-in-from-top-2 duration-300">
-                                Реферальный код: {referralOwner?.first_name} {referralOwner?.last_name}
-                              </div>
-                            )}
-                            
-                            {referralLookupError && (
-                              <div className="text-sm text-red-400 animate-in slide-in-from-top-2 duration-300">
-                                {referralLookupError}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
                       {/* Чекбокс для принятия условий соглашения */}
-                      <div className="mt-8 text-sm flex items-center gap-2">
+                      <div className="mt-4 text-sm flex items-center gap-2">
                         <input
                           type="checkbox"
                           id="agreement-profile-mobile"
@@ -371,7 +241,6 @@ export default function ProfilePage() {
         onClose={() => setIsPaymentOpen(false)}
         onSuccess={handlePaymentSuccess}
         onError={handlePaymentError}
-        referralCode={referralOwner ? referralCode : undefined}
       />
     </ProtectedRoute>
   );

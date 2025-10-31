@@ -3,16 +3,16 @@ import { useState } from "react";
 import Image from "next/image";
 import { createOrder } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { getReferralCode } from "@/lib/cookies";
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
   onError?: (message: string) => void;
-  referralCode?: string;
 }
 
-export default function PaymentModal({ isOpen, onClose, onSuccess, onError, referralCode }: PaymentModalProps) {
+export default function PaymentModal({ isOpen, onClose, onSuccess, onError }: PaymentModalProps) {
   const { isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -35,37 +35,22 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, onError, refe
         return;
       }
 
-      console.log(`💳 Начинаем оплату в валюте ${currency}...`, referralCode ? `Реферальный код: ${referralCode}` : '');
+      // Получаем реферальный код из cookies, если он есть
+      const referralCodeFromCookie = getReferralCode();
+
+      console.log(`💳 Начинаем оплату в валюте ${currency}...`, referralCodeFromCookie ? `Реферальный код: ${referralCodeFromCookie}` : '');
       
-      // Создаем заказ с указанием валюты и реферального кода
-      const orderData = await createOrder(accessToken, currency, referralCode);
+      // Создаем заказ с указанием валюты и реферального кода из cookies
+      const orderData = await createOrder(accessToken, currency, referralCodeFromCookie || undefined);
       
       console.log(`💳 Получен URL для оплаты в валюте ${currency}:`, orderData.url);
       
-      // Открываем URL с поддержкой iOS Safari
-      const openPaymentUrl = (url: string) => {
-        // Проверяем, является ли устройство iOS
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        
-        if (isIOS) {
-          // Для iOS используем location.href
-          window.location.href = url;
-        } else {
-          // Для других браузеров используем window.open
-          const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-          
-          // Если window.open заблокирован, используем location.href как fallback
-          if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-            console.log('🔄 window.open заблокирован, используем location.href');
-            window.location.href = url;
-          }
-        }
-      };
-      
-      openPaymentUrl(orderData.url);
-      
+      // Открываем URL в текущем окне
       onSuccess?.();
       onClose();
+      
+      // Перенаправляем на страницу оплаты в текущем окне
+      window.location.href = orderData.url;
       
     } catch (err) {
       console.error(`Ошибка при оплате в валюте ${currency}:`, err);
